@@ -1,0 +1,191 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Mur de Reflexions - Tauler del Mestre</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+    <style>
+        body { font-family: 'Fredoka', sans-serif; background-color: #f8fafc; }
+        .card { transition: transform 0.2s; border-radius: 1.5rem; }
+        .card:hover { transform: scale(1.02); }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .chip-checkbox input { display: none; }
+        .chip-checkbox span {
+            display: inline-block;
+            padding: 8px 16px;
+            border-radius: 9999px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            font-size: 0.875rem;
+            font-weight: 600;
+            transition: all 0.2s;
+            color: #64748b;
+            user-select: none;
+        }
+        .chip-checkbox input:checked + span {
+            background-color: #3b82f6;
+            color: white;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
+        }
+    </style>
+</head>
+<body class="p-6">
+
+    <div class="max-w-7xl mx-auto">
+        <header class="text-center mb-8 bg-white p-10 rounded-[3rem] shadow-sm border-b-4 border-blue-500">
+            <h1 class="text-4xl font-bold text-gray-800">🌟 La Veu dels Analistes</h1>
+            <p class="text-gray-500 mt-2 text-lg">Panell de control i gestió de dades</p>
+            
+            <div id="filterArea" class="mt-8 hidden">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Escull les escoles a visualitzar:</p>
+                <div class="flex flex-wrap justify-center gap-2 mb-2">
+                    <label class="chip-checkbox">
+                        <input type="checkbox" id="selectAll" checked onchange="toggleTotes(this)">
+                        <span>Totes les escoles</span>
+                    </label>
+                    <div id="schoolList" class="flex flex-wrap gap-2 justify-center"></div>
+                </div>
+                <p class="text-[10px] text-gray-400">💡 Clic per sumar/treure. Doble clic per triar-ne només una.</p>
+            </div>
+
+            <button onclick="carregarDades()" class="mt-6 px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition shadow-lg flex items-center gap-2 mx-auto">
+                <span>🔄 Actualitzar respostes</span>
+            </button>
+        </header>
+
+        <div id="loading" class="flex flex-col items-center justify-center py-20">
+            <div class="loader"></div>
+            <p class="mt-4 text-gray-500">Connectant amb la base de dades...</p>
+        </div>
+
+        <div id="noData" class="hidden text-center py-20">
+            <p class="text-xl text-gray-400 font-semibold" id="statusMessage">Encara no s'han rebut respostes.</p>
+        </div>
+
+        <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
+    </div>
+
+    <script>
+        const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbzomZljJEC3ct-SqznH-MHaf2d-HHWNNA-mblllATZm4hzeAc0JIJ5FgzLlJl03v-VQVA/exec";
+
+        let totesLesDades = [];
+        let escolesSeleccionades = new Set();
+
+        async function carregarDades() {
+            const grid = document.getElementById('grid');
+            const loading = document.getElementById('loading');
+            const noData = document.getElementById('noData');
+            const filterArea = document.getElementById('filterArea');
+
+            grid.innerHTML = '';
+            loading.classList.remove('hidden');
+            noData.classList.add('hidden');
+
+            try {
+                const response = await fetch(URL_SCRIPT);
+                totesLesDades = await response.json();
+                loading.classList.add('hidden');
+
+                if (!totesLesDades || totesLesDades.length === 0) {
+                    noData.classList.remove('hidden');
+                    return;
+                }
+
+                const escolesDisponibles = [...new Set(totesLesDades.map(d => d.Escola))].filter(e => e).sort();
+                if (escolesSeleccionades.size === 0) {
+                    escolesDisponibles.forEach(e => escolesSeleccionades.add(e));
+                }
+
+                generarSelectorEscoles(escolesDisponibles);
+                filterArea.classList.remove('hidden');
+                dibuixarTargetes();
+
+            } catch (error) {
+                loading.classList.add('hidden');
+                document.getElementById('statusMessage').innerHTML = "❌ Error en carregar les dades.";
+                noData.classList.remove('hidden');
+            }
+        }
+
+        function generarSelectorEscoles(escoles) {
+            const container = document.getElementById('schoolList');
+            container.innerHTML = '';
+            escoles.forEach(escola => {
+                const label = document.createElement('label');
+                label.className = 'chip-checkbox';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = escola;
+                checkbox.checked = escolesSeleccionades.has(escola);
+                checkbox.onchange = (e) => toggleEscola(escola, e.target.checked);
+                label.ondblclick = (e) => { e.preventDefault(); filtrarNomésUna(escola); };
+                const span = document.createElement('span');
+                span.innerText = escola;
+                label.appendChild(checkbox);
+                label.appendChild(span);
+                container.appendChild(label);
+            });
+        }
+
+        function filtrarNomésUna(escola) {
+            escolesSeleccionades.clear();
+            escolesSeleccionades.add(escola);
+            document.getElementById('selectAll').checked = false;
+            document.querySelectorAll('#schoolList input').forEach(cb => cb.checked = (cb.value === escola));
+            dibuixarTargetes();
+        }
+
+        function toggleEscola(escola, seleccionada) {
+            if (seleccionada) escolesSeleccionades.add(escola);
+            else escolesSeleccionades.delete(escola);
+            dibuixarTargetes();
+        }
+
+        function toggleTotes(master) {
+            const escoles = [...new Set(totesLesDades.map(d => d.Escola))].filter(e => e);
+            if (master.checked) escoles.forEach(e => escolesSeleccionades.add(e));
+            else escolesSeleccionades.clear();
+            document.querySelectorAll('#schoolList input').forEach(cb => cb.checked = master.checked);
+            dibuixarTargetes();
+        }
+
+        function dibuixarTargetes() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            const filtrades = totesLesDades.filter(d => escolesSeleccionades.has(d.Escola)).reverse();
+
+            filtrades.forEach(r => {
+                const data = r.Data ? new Date(r.Data).toLocaleDateString() : "";
+                const div = document.createElement('div');
+                div.className = "card bg-white p-6 shadow-md border-t-8 border-blue-400 flex flex-col gap-4";
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase">${r.Escola}</span>
+                        <span class="text-gray-400 text-[10px] uppercase">${data}</span>
+                    </div>
+                    <div class="space-y-4 text-left">
+                        <div><p class="text-[10px] font-bold text-gray-400 uppercase">🌟 Més agradat</p><p class="text-gray-700 text-sm italic">"${r['Pregunta 1']}"</p></div>
+                        <div class="pt-2 border-t border-gray-50">
+                            <p class="text-[10px] font-bold text-gray-400 uppercase">🧠 Aprenentatges</p>
+                            <p class="text-gray-600 text-xs">${r['Pregunta 2']}</p>
+                        </div>
+                        <div class="pt-2 border-t border-gray-50 grid grid-cols-2 gap-2">
+                            <div><p class="text-[10px] font-bold text-red-400 uppercase italic">⚠️ Dificultats</p><p class="text-gray-600 text-[11px]">${r['Pregunta 4']}</p></div>
+                            <div><p class="text-[10px] font-bold text-blue-400 uppercase italic">❓ Dubtes</p><p class="text-gray-600 text-[11px]">${r['Pregunta 5']}</p></div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        window.onload = carregarDades;
+    </script>
+</body>
+</html>

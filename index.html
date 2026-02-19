@@ -1,0 +1,146 @@
+<!DOCTYPE html>
+<html lang="ca">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Formulari - La Veu dels Analistes</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap');
+        body { font-family: 'Fredoka', sans-serif; background-color: #f0f9ff; }
+        .card-step { display: none; }
+        .card-step.active { display: block; animation: fadeIn 0.5s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+        .school-option:checked + label { border-color: #3b82f6; background-color: #eff6ff; }
+    </style>
+</head>
+<body class="min-h-screen flex items-center justify-center p-4">
+
+    <div class="max-w-2xl w-full bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-blue-100">
+        <div class="bg-blue-500 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold">📊 La Veu dels Analistes de Dades</h1>
+        </div>
+        
+        <div class="w-full bg-gray-100 h-2">
+            <div id="progressBar" class="bg-yellow-400 h-full w-0 transition-all duration-300"></div>
+        </div>
+
+        <form id="voiceForm" class="p-8">
+            <!-- Pas 0: Escola -->
+            <div id="step0" class="card-step active">
+                <h2 class="text-xl font-semibold mb-6 text-center text-gray-700">Tria la teva escola:</h2>
+                <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
+                    <input type="radio" name="escola" id="e1" value="Escola La Canaleta" class="school-option hidden"><label for="e1" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola La Canaleta</label>
+                    <input type="radio" name="escola" id="e2" value="Escola La Canonja" class="school-option hidden"><label for="e2" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola La Canonja</label>
+                    <input type="radio" name="escola" id="e3" value="Escola La Portalada" class="school-option hidden"><label for="e3" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola La Portalada</label>
+                    <input type="radio" name="escola" id="e4" value="Escola Campclar" class="school-option hidden"><label for="e4" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola Campclar</label>
+                    <input type="radio" name="escola" id="e5" value="Escola Saavedra" class="school-option hidden"><label for="e5" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola Saavedra</label>
+                    <input type="radio" name="escola" id="e6" value="Escola El Roquissar" class="school-option hidden"><label for="e6" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola El Roquissar</label>
+                    <input type="radio" name="escola" id="e7" value="Escola Pau Delclòs" class="school-option hidden"><label for="e7" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola Pau Delclòs</label>
+                    <input type="radio" name="escola" id="e8" value="Escola Tarragona" class="school-option hidden"><label for="e8" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola Tarragona</label>
+                </div>
+            </div>
+
+            <!-- Preguntes -->
+            <div id="step1" class="card-step">
+                <h2 class="text-lg font-semibold mb-2 text-gray-700">1. Què és el que més t’ha agradat de la proposta analistes de dades?</h2>
+                <textarea name="p1" placeholder="Escriu aquí..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none"></textarea>
+            </div>
+            <div id="step2" class="card-step">
+                <h2 class="text-lg font-semibold mb-2 text-gray-700">2. Quines coses has après que abans no coneixies?</h2>
+                <textarea name="p2" placeholder="Escriu aquí..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none"></textarea>
+            </div>
+            <div id="step3" class="card-step">
+                <h2 class="text-lg font-semibold mb-2 text-gray-700">3. Del que has après, què t’ha interessat més?</h2>
+                <textarea name="p3" placeholder="Escriu aquí..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none"></textarea>
+            </div>
+            <div id="step4" class="card-step">
+                <h2 class="text-lg font-semibold mb-2 text-gray-700">4. En quins aspectes has tingut més dubtes o dificultats?</h2>
+                <textarea name="p4" placeholder="Escriu aquí..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none"></textarea>
+            </div>
+            <div id="step5" class="card-step">
+                <h2 class="text-lg font-semibold mb-2 text-gray-700">5. Quins dubtes et queden encara?</h2>
+                <textarea name="p5" placeholder="Escriu aquí..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none"></textarea>
+            </div>
+
+            <div class="mt-8 flex justify-between">
+                <button type="button" id="prevBtn" class="invisible px-4 py-2 text-gray-400 font-semibold">Anterior</button>
+                <button type="button" id="nextBtn" class="px-8 py-3 bg-blue-500 text-white font-bold rounded-full shadow-lg hover:bg-blue-600 transition-all">Següent ➔</button>
+            </div>
+        </form>
+
+        <div id="success" class="hidden p-12 text-center">
+            <div class="text-6xl mb-4 text-green-500">⭐</div>
+            <h2 class="text-2xl font-bold text-green-600">Enviat correctament!</h2>
+            <p class="mt-2 text-gray-600">Moltes gràcies per compartir la teva reflexió.</p>
+            <button onclick="reiniciarFormulari()" class="mt-8 px-6 py-2 border-2 border-blue-500 text-blue-500 font-bold rounded-full hover:bg-blue-50 transition-colors">
+                Enviar una altra resposta
+            </button>
+        </div>
+    </div>
+
+    <script>
+        const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbxomZljJEC3ct-SqznH-MHaf2d-HHWNNA-mblllATZm4hzeAc0JIJ5FgzLlJl03v-VQVA/exec";
+
+        let step = 0;
+        const form = document.getElementById('voiceForm');
+        const nextBtn = document.getElementById('nextBtn');
+        const prevBtn = document.getElementById('prevBtn');
+
+        function update() {
+            document.querySelectorAll('.card-step').forEach((s, i) => s.classList.toggle('active', i === step));
+            prevBtn.classList.toggle('invisible', step === 0);
+            nextBtn.innerText = step === 5 ? 'Enviar ✨' : 'Següent ➔';
+            document.getElementById('progressBar').style.width = (step / 5 * 100) + '%';
+        }
+
+        function reiniciarFormulari() {
+            form.reset();
+            step = 0;
+            form.classList.remove('hidden');
+            document.getElementById('success').classList.add('hidden');
+            nextBtn.disabled = false;
+            update();
+        }
+
+        nextBtn.onclick = async () => {
+            if (step === 0 && !document.querySelector('input[name="escola"]:checked')) {
+                return alert("Si us plau, tria la teva escola!");
+            }
+            
+            if (step < 5) {
+                step++;
+                update();
+            } else {
+                nextBtn.disabled = true;
+                nextBtn.innerText = "Enviant...";
+                
+                const dades = {
+                    escola: document.querySelector('input[name="escola"]:checked').value,
+                    pregunta1: form.p1.value,
+                    pregunta2: form.p2.value,
+                    pregunta3: form.p3.value,
+                    pregunta4: form.p4.value,
+                    pregunta5: form.p5.value
+                };
+
+                try {
+                    await fetch(URL_GOOGLE_SCRIPT, {
+                        method: 'POST',
+                        mode: 'no-cors',
+                        body: JSON.stringify(dades)
+                    });
+                    form.classList.add('hidden');
+                    document.getElementById('success').classList.remove('hidden');
+                } catch (e) {
+                    alert("Hi ha hagut un error en l'enviament. Revisa la connexió.");
+                    nextBtn.disabled = false;
+                    nextBtn.innerText = "Enviar ✨";
+                }
+            }
+        };
+
+        prevBtn.onclick = () => { if(step > 0) step--; update(); };
+    </script>
+</body>
+</html>
