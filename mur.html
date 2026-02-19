@@ -3,237 +3,250 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Dashboard Analistes de Dades</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link href="https://fonts.googleapis.com/css2?family=Arimo:wght@400;700&family=Azeret+Mono&display=swap" rel="stylesheet">
+    <title>Mur de Reflexions - Tauler del Mestre</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
     <style>
-        :root {
-            --primary: #005088;
-            --accent: #3b82f6;
-        }
-        body {
-            background-color: #f3f4f6;
-            font-family: 'Arimo', sans-serif;
-        }
-        .kpi-card {
-            background: white;
-            padding: 1.5rem;
-            border-radius: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-            text-align: center;
-            border: 1px solid #e5e7eb;
-        }
-        .response-card {
-            background: white;
-            border-radius: 1.25rem;
-            padding: 1.5rem;
-            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.05);
-            border-bottom: 4px solid var(--accent);
-            transition: transform 0.2s;
-        }
-        .response-card:hover {
-            transform: translateY(-5px);
-        }
-        .filter-btn {
-            padding: 0.5rem 1.25rem;
+        body { font-family: 'Fredoka', sans-serif; background-color: #f8fafc; }
+        .card { transition: all 0.3s ease; border-radius: 1.5rem; }
+        .card:hover { transform: translateY(-5px); shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
+        
+        .chip-checkbox input { display: none; }
+        .chip-checkbox span {
+            display: inline-block;
+            padding: 8px 16px;
             border-radius: 9999px;
+            border: 2px solid #e2e8f0;
+            background: white;
+            cursor: pointer;
+            font-size: 0.875rem;
             font-weight: 600;
             transition: all 0.2s;
-            border: 2px solid var(--primary);
-            color: var(--primary);
-            background: white;
+            color: #64748b;
+            user-select: none;
         }
-        .filter-btn.active {
-            background: var(--primary);
+        .chip-checkbox input:checked + span {
+            background-color: #3b82f6;
             color: white;
+            border-color: #3b82f6;
+            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.3);
         }
-        .loader {
-            border: 4px solid #f3f3f3;
-            border-top: 4px solid var(--primary);
-            border-radius: 50%;
-            width: 40px;
-            height: 40px;
-            animation: spin 1s linear infinite;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="p-6">
 
-<div class="max-w-6xl mx-auto">
-    <!-- Capçalera -->
-    <header class="bg-[#005088] text-white p-8 rounded-[2rem] shadow-xl mb-8 text-center relative overflow-hidden">
-        <div class="relative z-10">
-            <h1 class="text-3xl md:text-4xl font-bold mb-2">📊 Dashboard d'Analistes</h1>
-            <p class="text-blue-100 opacity-90">Anàlisi de reflexions de les escoles en temps real</p>
-            <button onclick="carregarDades()" class="mt-6 bg-yellow-400 hover:bg-yellow-500 text-blue-900 font-bold py-2 px-6 rounded-full transition-transform active:scale-95 shadow-lg">
-                🔄 Actualitzar Dades
+    <div class="max-w-7xl mx-auto">
+        <!-- Panell d'enllaços ràpids per al mestre -->
+        <div class="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-xl text-sm flex flex-col md:flex-row justify-between items-center gap-4">
+            <div>
+                <p class="font-bold text-blue-800 tracking-tight text-lg">📊 Panell d'Analistes</p>
+                <p class="text-blue-600 text-xs">Respostes sincronitzades amb Google Sheets</p>
+            </div>
+            <div class="flex gap-4 items-center">
+                <div class="text-right">
+                    <p class="text-[10px] uppercase font-bold text-blue-400">Escoles Actives</p>
+                    <p id="counterEscoles" class="text-xl font-bold text-blue-800">0</p>
+                </div>
+                <div class="text-right border-l pl-4 border-blue-200">
+                    <p class="text-[10px] uppercase font-bold text-blue-400">Total Respostes</p>
+                    <p id="counterRespostes" class="text-xl font-bold text-blue-800">0</p>
+                </div>
+            </div>
+        </div>
+
+        <header class="text-center mb-8 bg-white p-10 rounded-[3rem] shadow-sm border-b-4 border-blue-500">
+            <h1 class="text-4xl font-bold text-gray-800">🌟 La Veu dels Analistes</h1>
+            <p class="text-gray-500 mt-2 text-lg">Visualització de reflexions en temps real</p>
+            
+            <div id="filterArea" class="mt-8 hidden">
+                <p class="text-xs font-bold text-gray-400 uppercase tracking-widest mb-2">Filtra per centre:</p>
+                <div class="flex flex-wrap justify-center gap-2 mb-2">
+                    <label class="chip-checkbox">
+                        <input type="checkbox" id="selectAll" checked onchange="toggleTotes(this)">
+                        <span>Totes</span>
+                    </label>
+                    <div id="schoolList" class="flex flex-wrap gap-2 justify-center"></div>
+                </div>
+            </div>
+
+            <button onclick="carregarDades()" class="mt-6 px-6 py-2 bg-blue-500 text-white rounded-full hover:bg-blue-600 transition shadow-lg flex items-center gap-2 mx-auto">
+                <span id="btnText">🔄 Actualitzar dades</span>
             </button>
-        </div>
-    </header>
+        </header>
 
-    <!-- Resum KPIs -->
-    <div class="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-        <div class="kpi-card">
-            <div id="totalCount" class="text-5xl font-bold text-[#005088]">0</div>
-            <p class="text-gray-500 font-bold uppercase tracking-widest text-xs mt-2">Respostes totals</p>
+        <div id="loading" class="flex flex-col items-center justify-center py-20">
+            <div class="loader"></div>
+            <p class="mt-4 text-gray-500">Carregant dades...</p>
         </div>
-        <div class="kpi-card">
-            <div id="schoolCount" class="text-5xl font-bold text-[#005088]">0</div>
-            <p class="text-gray-500 font-bold uppercase tracking-widest text-xs mt-2">Escoles actives</p>
+
+        <div id="noData" class="hidden text-center py-20">
+            <p class="text-xl text-gray-400 font-semibold" id="statusMessage">No s'han trobat respostes.</p>
         </div>
+
+        <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"></div>
     </div>
 
-    <!-- Filtres -->
-    <div class="mb-8">
-        <p class="text-center text-gray-500 text-xs font-bold uppercase mb-4 tracking-widest">Filtra per escola:</p>
-        <div id="filterContainer" class="flex flex-wrap justify-center gap-3">
-            <button class="filter-btn active" onclick="filtrar('Totes')">Totes</button>
-        </div>
-    </div>
+    <script>
+        // URL de l'Script de Google
+        const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyd8EMwdnW3MVat7v7zWbj5n0CHM5sl8Ket0HZcKdEVAqGysjMqH0POzgTA6NX2LHue3Q/exec";
 
-    <!-- Estat / Errors -->
-    <div id="status"></div>
+        let totesLesDades = [];
+        let escolesSeleccionades = new Set();
 
-    <!-- Graella de Respostes -->
-    <div id="responsesGrid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6">
-        <div class="col-span-full flex flex-col items-center py-20">
-            <div class="loader mb-4"></div>
-            <p class="text-gray-500 animate-pulse">Connectant amb la base de dades...</p>
-        </div>
-    </div>
-</div>
+        // Funció per obtenir el valor d'una clau sense importar majúscules o espais
+        function getVal(obj, keys) {
+            for (let k of keys) {
+                if (obj[k] !== undefined) return obj[k];
+                // Prova variants comunes
+                let lowerK = k.toLowerCase().replace(/\s/g, '');
+                for (let actualKey in obj) {
+                    let actualLower = actualKey.toLowerCase().replace(/\s/g, '');
+                    if (actualLower === lowerK) return obj[actualKey];
+                }
+            }
+            return "-";
+        }
 
-<script>
-    // --- CONFIGURACIÓ ---
-    // Substitueix l'URL de sota per la teva URL de Google Apps Script si és diferent
-    const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyQjTl0JXgeYMP4ANTX0Cq1YowlLJezRIyPFNsGEXCDEoju-B2NA19csKfjOq-MtNQkZQ/exec";
-    
-    let totesLesDades = [];
-    let filtreActual = 'Totes';
+        async function carregarDades() {
+            const grid = document.getElementById('grid');
+            const loading = document.getElementById('loading');
+            const noData = document.getElementById('noData');
+            const filterArea = document.getElementById('filterArea');
+            const btnText = document.getElementById('btnText');
 
-    async function carregarDades() {
-        const grid = document.getElementById('responsesGrid');
-        const status = document.getElementById('status');
-        
-        status.innerHTML = '';
-        
-        try {
-            // Afegim un timestamp per evitar problemes de memòria cau (cache)
-            const response = await fetch(`${URL_SCRIPT}?t=${Date.now()}`);
-            if (!response.ok) throw new Error("Error de xarxa");
-
-            const dades = await response.json();
-            totesLesDades = Array.isArray(dades) ? dades : [];
-            
-            generarFiltres();
-            renderitzar();
-
-        } catch (error) {
-            console.error(error);
             grid.innerHTML = '';
-            status.innerHTML = `
-                <div class="bg-red-100 border-l-4 border-red-500 text-red-700 p-6 rounded-xl mb-8 shadow-sm">
-                    <p class="font-bold text-lg">⚠️ No s'han pogut carregar les dades</p>
-                    <p class="text-sm mt-1">Revisa que l'URL de l'Script estigui ben configurada i que el desplegament de Google estigui en mode "Anyone".</p>
-                </div>
-            `;
-        }
-    }
+            loading.classList.remove('hidden');
+            noData.classList.add('hidden');
+            btnText.innerText = "Sincronitzant...";
 
-    function generarFiltres() {
-        const container = document.getElementById('filterContainer');
-        // Busquem el nom de l'escola ja sigui en majúscules o minúscules
-        const escoles = [...new Set(totesLesDades.map(d => d.escola || d.Escola).filter(Boolean))].sort();
-        
-        container.innerHTML = `<button class="filter-btn ${filtreActual === 'Totes' ? 'active' : ''}" onclick="filtrar('Totes')">Totes</button>`;
-        
-        escoles.forEach(escola => {
-            const btn = document.createElement('button');
-            btn.className = `filter-btn ${filtreActual === escola ? 'active' : ''}`;
-            btn.innerText = escola;
-            btn.onclick = () => filtrar(escola);
-            container.appendChild(btn);
-        });
-    }
-
-    function filtrar(escola) {
-        filtreActual = escola;
-        document.querySelectorAll('.filter-btn').forEach(b => {
-            b.classList.toggle('active', b.innerText === escola || (escola === 'Totes' && b.innerText === 'Totes'));
-        });
-        renderitzar();
-    }
-
-    function renderitzar() {
-        const grid = document.getElementById('responsesGrid');
-        grid.innerHTML = '';
-
-        const dadesFiltrades = filtreActual === 'Totes' 
-            ? [...totesLesDades] 
-            : totesLesDades.filter(d => (d.escola || d.Escola) === filtreActual);
-
-        // Actualitzem els comptadors superiors (KPIs)
-        document.getElementById('totalCount').innerText = totesLesDades.length;
-        document.getElementById('schoolCount').innerText = [...new Set(totesLesDades.map(d => d.escola || d.Escola).filter(Boolean))].length;
-
-        if (dadesFiltrades.length === 0) {
-            grid.innerHTML = '<div class="col-span-full text-center py-20 text-gray-400">No hi ha dades per mostrar.</div>';
-            return;
-        }
-
-        // Mostrem les dades més recents a dalt de tot
-        dadesFiltrades.reverse().forEach(item => {
-            // Funció de normalització: busca el valor de la columna provant diferents formats
-            const getVal = (pref) => {
-                const key = pref.toLowerCase();
-                // Prova: pregunta1, Pregunta 1, Pregunta1, pregunta 1...
-                return item[key] || 
-                       item[pref.charAt(0).toUpperCase() + pref.slice(1)] || 
-                       item[pref.slice(0,-1) + " " + pref.slice(-1)] || 
-                       item['Pregunta ' + pref.slice(-1)] || 
-                       "-";
-            };
-            
-            const escola = item.escola || item.Escola || "Escola";
-            const p1 = getVal('pregunta1');
-            const p2 = getVal('pregunta2');
-            const p5 = getVal('pregunta5');
-
-            const card = document.createElement('div');
-            card.className = 'response-card';
-            card.innerHTML = `
-                <div class="flex justify-between items-start mb-4">
-                    <span class="bg-blue-100 text-blue-800 text-[10px] font-bold px-2.5 py-1 rounded-full uppercase tracking-wider">${escola}</span>
-                    <span class="text-[10px] text-gray-400 font-mono">${item.Data ? new Date(item.Data).toLocaleDateString() : ''}</span>
-                </div>
+            try {
+                const response = await fetch(URL_SCRIPT + "?t=" + new Date().getTime());
+                totesLesDades = await response.json();
                 
-                <div class="space-y-4">
-                    <section>
-                        <p class="text-[9px] font-bold text-gray-400 uppercase mb-1 tracking-widest">🌟 Més agradat</p>
-                        <p class="text-sm text-gray-700 leading-relaxed font-medium">"${p1}"</p>
-                    </section>
-                    
-                    <section class="pt-3 border-t border-gray-50">
-                        <p class="text-[9px] font-bold text-gray-400 uppercase mb-1 tracking-widest">🧠 Aprenentatges</p>
-                        <p class="text-xs text-gray-600 leading-relaxed">${p2}</p>
-                    </section>
+                loading.classList.add('hidden');
+                btnText.innerText = "🔄 Actualitzar dades";
 
-                    <section class="pt-3 border-t border-gray-50">
-                        <p class="text-[9px] font-bold text-blue-400 uppercase mb-1 tracking-widest">❓ Dubtes Pendents</p>
-                        <p class="text-xs text-blue-800 italic leading-relaxed">"${p5}"</p>
-                    </section>
-                </div>
-            `;
-            grid.appendChild(card);
-        });
-    }
+                if (!totesLesDades || totesLesDades.length === 0) {
+                    noData.classList.remove('hidden');
+                    return;
+                }
 
-    // Executa la càrrega inicial en obrir la pàgina
-    window.onload = carregarDades;
-</script>
+                // Normalització d'escoles per al recompte i filtres
+                const escolesDisponibles = [...new Set(totesLesDades.map(d => {
+                    return getVal(d, ['Escola', 'escola', 'Centre']);
+                }))].filter(e => e && e !== "-").sort();
+                
+                document.getElementById('counterEscoles').innerText = escolesDisponibles.length;
+                document.getElementById('counterRespostes').innerText = totesLesDades.length;
 
+                if (escolesSeleccionades.size === 0) {
+                    escolesDisponibles.forEach(e => escolesSeleccionades.add(e));
+                }
+
+                generarSelectorEscoles(escolesDisponibles);
+                filterArea.classList.remove('hidden');
+                dibuixarTargetes();
+
+            } catch (error) {
+                loading.classList.add('hidden');
+                btnText.innerText = "🔄 Error";
+                document.getElementById('statusMessage').innerHTML = "❌ No s'ha pogut connectar amb Google Sheets.";
+                noData.classList.remove('hidden');
+            }
+        }
+
+        function generarSelectorEscoles(escoles) {
+            const container = document.getElementById('schoolList');
+            container.innerHTML = '';
+            escoles.forEach(escola => {
+                const label = document.createElement('label');
+                label.className = 'chip-checkbox';
+                const checkbox = document.createElement('input');
+                checkbox.type = 'checkbox';
+                checkbox.value = escola;
+                checkbox.checked = escolesSeleccionades.has(escola);
+                checkbox.onchange = (e) => {
+                    if (e.target.checked) escolesSeleccionades.add(escola);
+                    else escolesSeleccionades.delete(escola);
+                    dibuixarTargetes();
+                };
+                const span = document.createElement('span');
+                span.innerText = escola;
+                label.appendChild(checkbox);
+                label.appendChild(span);
+                container.appendChild(label);
+            });
+        }
+
+        function toggleTotes(master) {
+            const checkboxes = document.querySelectorAll('#schoolList input');
+            checkboxes.forEach(cb => {
+                cb.checked = master.checked;
+                if (master.checked) escolesSeleccionades.add(cb.value);
+                else escolesSeleccionades.delete(cb.value);
+            });
+            dibuixarTargetes();
+        }
+
+        function dibuixarTargetes() {
+            const grid = document.getElementById('grid');
+            grid.innerHTML = '';
+            
+            const filtrades = totesLesDades.filter(d => {
+                const nomEscola = getVal(d, ['Escola', 'escola', 'Centre']);
+                return escolesSeleccionades.has(nomEscola);
+            }).reverse();
+
+            if (filtrades.length === 0) {
+                grid.innerHTML = '<div class="col-span-full py-10 text-center text-gray-400 italic text-sm">Selecciona una escola per veure les dades.</div>';
+                return;
+            }
+
+            filtrades.forEach(r => {
+                const escola = getVal(r, ['Escola', 'escola', 'Centre']);
+                const dataRaw = getVal(r, ['Data', 'Timestamp', 'timestamp']);
+                const data = dataRaw !== "-" ? new Date(dataRaw).toLocaleDateString() : "";
+                
+                const p1 = getVal(r, ['Pregunta 1', 'pregunta1', 'p1']);
+                const p2 = getVal(r, ['Pregunta 2', 'pregunta2', 'p2']);
+                const p4 = getVal(r, ['Pregunta 4', 'pregunta4', 'p4']);
+                const p5 = getVal(r, ['Pregunta 5', 'pregunta5', 'p5']);
+
+                const div = document.createElement('div');
+                div.className = "card bg-white p-6 shadow-md border-t-8 border-blue-400 flex flex-col gap-4";
+                div.innerHTML = `
+                    <div class="flex justify-between items-start">
+                        <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">${escola}</span>
+                        <span class="text-gray-300 text-[10px] font-bold">${data}</span>
+                    </div>
+                    <div class="space-y-4 text-left">
+                        <div>
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">✨ Més destacat</p>
+                            <p class="text-gray-700 text-sm italic font-medium mt-1 leading-snug">"${p1}"</p>
+                        </div>
+                        <div class="pt-3 border-t border-gray-50">
+                            <p class="text-[9px] font-black text-gray-400 uppercase tracking-widest">💡 Aprenentatges</p>
+                            <p class="text-gray-600 text-xs mt-1 leading-relaxed">${p2}</p>
+                        </div>
+                        <div class="pt-3 border-t border-gray-50 grid grid-cols-2 gap-3">
+                            <div>
+                                <p class="text-[9px] font-black text-orange-400 uppercase tracking-widest">🚧 Dificultat</p>
+                                <p class="text-gray-600 text-[11px] mt-0.5 leading-tight">${p4}</p>
+                            </div>
+                            <div>
+                                <p class="text-[9px] font-black text-blue-400 uppercase tracking-widest">❓ Dubte</p>
+                                <p class="text-gray-600 text-[11px] mt-0.5 leading-tight">${p5}</p>
+                            </div>
+                        </div>
+                    </div>
+                `;
+                grid.appendChild(div);
+            });
+        }
+
+        window.onload = carregarDades;
+    </script>
 </body>
 </html>
-
