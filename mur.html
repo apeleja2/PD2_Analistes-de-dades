@@ -38,7 +38,7 @@
 <body class="p-6">
 
     <div class="max-w-7xl mx-auto">
-        <!-- Panell d'enllaços ràpids per al mestre -->
+        <!-- Panell d'informació -->
         <div class="mb-4 p-4 bg-blue-50 border-l-4 border-blue-500 rounded-r-xl text-sm flex flex-col md:flex-row justify-between items-center gap-4">
             <div>
                 <p class="font-bold text-blue-800 tracking-tight text-lg">📊 Panell d'Analistes</p>
@@ -78,7 +78,7 @@
 
         <div id="loading" class="flex flex-col items-center justify-center py-20">
             <div class="loader"></div>
-            <p class="mt-4 text-gray-500">Carregant dades...</p>
+            <p class="mt-4 text-gray-500">Carregant dades des de l'Excel...</p>
         </div>
 
         <div id="noData" class="hidden text-center py-20">
@@ -95,28 +95,14 @@
         let totesLesDades = [];
         let escolesSeleccionades = new Set();
 
-        // Funció de normalització de text per comparacions (treu accents i espais)
-        function normalitzar(text) {
-            if (!text) return "";
-            return text.toString().toLowerCase()
-                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Treu accents
-                .replace(/\s/g, ''); // Treu espais
-        }
-
-        // Funció millorada per extreure valors de l'objecte JSON
+        // Funció per extreure valors provant diferents formats de clau
         function getVal(obj, keys) {
-            // 1. Prova les claus exactes primer
             for (let k of keys) {
-                if (obj[k] !== undefined && obj[k] !== "" && obj[k] !== null) return obj[k];
-            }
-            
-            // 2. Prova normalitzant totes les claus del JSON de l'Excel
-            const keysNormalitzades = keys.map(k => normalitzar(k));
-            for (let actualKey in obj) {
-                let actualNorm = normalitzar(actualKey);
-                if (keysNormalitzades.includes(actualNorm) && obj[actualKey] !== "" && obj[actualKey] !== null) {
-                    return obj[actualKey];
-                }
+                // Provem la clau tal qual
+                if (obj[k] !== undefined && obj[k] !== null && obj[k] !== "") return obj[k];
+                // Provem la clau en minúscules i sense espais (com fa Apps Script)
+                let cleanKey = k.toLowerCase().replace(/\s+/g, '');
+                if (obj[cleanKey] !== undefined && obj[cleanKey] !== null && obj[cleanKey] !== "") return obj[cleanKey];
             }
             return "-";
         }
@@ -134,11 +120,11 @@
             btnText.innerText = "Sincronitzant...";
 
             try {
-                // Afegim un timestamp per evitar la memòria cau del navegador
+                // Forcem refresc amb timestamp
                 const response = await fetch(URL_SCRIPT + "?t=" + new Date().getTime());
                 totesLesDades = await response.json();
                 
-                console.log("Dades rebudes de l'Excel:", totesLesDades); // Debug per a la consola
+                console.log("Dades brutes de l'Excel:", totesLesDades);
 
                 loading.classList.add('hidden');
                 btnText.innerText = "🔄 Actualitzar dades";
@@ -148,10 +134,8 @@
                     return;
                 }
 
-                // Normalització d'escoles
-                const escolesDisponibles = [...new Set(totesLesDades.map(d => {
-                    return getVal(d, ['Escola', 'Centre', 'escola']);
-                }))].filter(e => e && e !== "-").sort();
+                // Identificar escoles
+                const escolesDisponibles = [...new Set(totesLesDades.map(d => getVal(d, ['escola', 'Escola', 'Centre'])))].filter(e => e && e !== "-").sort();
                 
                 document.getElementById('counterEscoles').innerText = escolesDisponibles.length;
                 document.getElementById('counterRespostes').innerText = totesLesDades.length;
@@ -165,10 +149,9 @@
                 dibuixarTargetes();
 
             } catch (error) {
-                console.error("Error carregant:", error);
+                console.error("Error:", error);
                 loading.classList.add('hidden');
                 btnText.innerText = "🔄 Error";
-                document.getElementById('statusMessage').innerHTML = "❌ No s'ha pogut connectar amb Google Sheets.";
                 noData.classList.remove('hidden');
             }
         }
@@ -211,32 +194,37 @@
             grid.innerHTML = '';
             
             const filtrades = totesLesDades.filter(d => {
-                const nomEscola = getVal(d, ['Escola', 'Centre', 'escola']);
+                const nomEscola = getVal(d, ['escola', 'Escola', 'Centre']);
                 return escolesSeleccionades.has(nomEscola);
             }).reverse();
 
             if (filtrades.length === 0) {
-                grid.innerHTML = '<div class="col-span-full py-10 text-center text-gray-400 italic text-sm">Selecciona una escola per veure les dades.</div>';
+                grid.innerHTML = '<div class="col-span-full py-10 text-center text-gray-400 italic">No hi ha dades per mostrar.</div>';
                 return;
             }
 
             filtrades.forEach(r => {
-                const escola = getVal(r, ['Escola', 'Centre', 'escola']);
-                const dataRaw = getVal(r, ['Data', 'Timestamp', 'Marca temporal']);
-                const data = (dataRaw !== "-" && dataRaw) ? new Date(dataRaw).toLocaleDateString('ca-ES') : "Avui";
+                const escola = getVal(r, ['escola', 'Escola']);
+                const dataRaw = getVal(r, ['marcatemporal', 'timestamp', 'Data']);
+                let dataStr = "Recent";
+                if (dataRaw !== "-") {
+                    const d = new Date(dataRaw);
+                    dataStr = isNaN(d) ? dataRaw : d.toLocaleDateString('ca-ES');
+                }
                 
-                // Mapeig robust: busca claus curtes (p1) i llargues (Pregunta 1)
-                const p1 = getVal(r, ['p1', 'Pregunta 1', 'pregunta1']);
-                const p2 = getVal(r, ['p2', 'Pregunta 2', 'pregunta2']);
-                const p4 = getVal(r, ['p4', 'Pregunta 4', 'pregunta4']);
-                const p5 = getVal(r, ['p5', 'Pregunta 5', 'pregunta5']);
+                // Mapeig de claus basat en el teu script.gs
+                const p1 = getVal(r, ['pregunta1', 'p1']);
+                const p2 = getVal(r, ['pregunta2', 'p2']);
+                const p3 = getVal(r, ['pregunta3', 'p3']);
+                const p4 = getVal(r, ['pregunta4', 'p4']);
+                const p5 = getVal(r, ['pregunta5', 'p5']);
 
                 const div = document.createElement('div');
                 div.className = "card bg-white p-6 shadow-md border-t-8 border-blue-400 flex flex-col gap-4";
                 div.innerHTML = `
                     <div class="flex justify-between items-start">
                         <span class="bg-blue-500 text-white px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-wider">${escola}</span>
-                        <span class="text-gray-300 text-[10px] font-bold">${data}</span>
+                        <span class="text-gray-300 text-[10px] font-bold">${dataStr}</span>
                     </div>
                     <div class="space-y-4 text-left">
                         <div>
