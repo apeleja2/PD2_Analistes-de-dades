@@ -95,18 +95,27 @@
         let totesLesDades = [];
         let escolesSeleccionades = new Set();
 
-        // Funció per obtenir el valor d'una clau sense importar majúscules o espais
-        // Ara busca també les claus curtes p1, p2, etc. que envia el formulari
+        // Funció de normalització de text per comparacions (treu accents i espais)
+        function normalitzar(text) {
+            if (!text) return "";
+            return text.toString().toLowerCase()
+                .normalize("NFD").replace(/[\u0300-\u036f]/g, "") // Treu accents
+                .replace(/\s/g, ''); // Treu espais
+        }
+
+        // Funció millorada per extreure valors de l'objecte JSON
         function getVal(obj, keys) {
+            // 1. Prova les claus exactes primer
             for (let k of keys) {
-                // Prova directa
-                if (obj[k] !== undefined && obj[k] !== "") return obj[k];
-                
-                // Prova variants (minúscules, sense espais)
-                let target = k.toLowerCase().replace(/\s/g, '');
-                for (let actualKey in obj) {
-                    let actualLower = actualKey.toLowerCase().replace(/\s/g, '');
-                    if (actualLower === target && obj[actualKey] !== "") return obj[actualKey];
+                if (obj[k] !== undefined && obj[k] !== "" && obj[k] !== null) return obj[k];
+            }
+            
+            // 2. Prova normalitzant totes les claus del JSON de l'Excel
+            const keysNormalitzades = keys.map(k => normalitzar(k));
+            for (let actualKey in obj) {
+                let actualNorm = normalitzar(actualKey);
+                if (keysNormalitzades.includes(actualNorm) && obj[actualKey] !== "" && obj[actualKey] !== null) {
+                    return obj[actualKey];
                 }
             }
             return "-";
@@ -125,9 +134,12 @@
             btnText.innerText = "Sincronitzant...";
 
             try {
+                // Afegim un timestamp per evitar la memòria cau del navegador
                 const response = await fetch(URL_SCRIPT + "?t=" + new Date().getTime());
                 totesLesDades = await response.json();
                 
+                console.log("Dades rebudes de l'Excel:", totesLesDades); // Debug per a la consola
+
                 loading.classList.add('hidden');
                 btnText.innerText = "🔄 Actualitzar dades";
 
@@ -136,9 +148,9 @@
                     return;
                 }
 
-                // Normalització d'escoles per al recompte i filtres
+                // Normalització d'escoles
                 const escolesDisponibles = [...new Set(totesLesDades.map(d => {
-                    return getVal(d, ['Escola', 'escola', 'Centre']);
+                    return getVal(d, ['Escola', 'Centre', 'escola']);
                 }))].filter(e => e && e !== "-").sort();
                 
                 document.getElementById('counterEscoles').innerText = escolesDisponibles.length;
@@ -153,6 +165,7 @@
                 dibuixarTargetes();
 
             } catch (error) {
+                console.error("Error carregant:", error);
                 loading.classList.add('hidden');
                 btnText.innerText = "🔄 Error";
                 document.getElementById('statusMessage').innerHTML = "❌ No s'ha pogut connectar amb Google Sheets.";
@@ -198,7 +211,7 @@
             grid.innerHTML = '';
             
             const filtrades = totesLesDades.filter(d => {
-                const nomEscola = getVal(d, ['Escola', 'escola', 'Centre']);
+                const nomEscola = getVal(d, ['Escola', 'Centre', 'escola']);
                 return escolesSeleccionades.has(nomEscola);
             }).reverse();
 
@@ -208,11 +221,11 @@
             }
 
             filtrades.forEach(r => {
-                const escola = getVal(r, ['Escola', 'escola', 'Centre']);
-                const dataRaw = getVal(r, ['Data', 'Timestamp', 'timestamp']);
-                const data = (dataRaw !== "-" && dataRaw) ? new Date(dataRaw).toLocaleDateString() : "Avui";
+                const escola = getVal(r, ['Escola', 'Centre', 'escola']);
+                const dataRaw = getVal(r, ['Data', 'Timestamp', 'Marca temporal']);
+                const data = (dataRaw !== "-" && dataRaw) ? new Date(dataRaw).toLocaleDateString('ca-ES') : "Avui";
                 
-                // Mapeig de claus per assegurar compatibilitat amb index.html i l'Excel
+                // Mapeig robust: busca claus curtes (p1) i llargues (Pregunta 1)
                 const p1 = getVal(r, ['p1', 'Pregunta 1', 'pregunta1']);
                 const p2 = getVal(r, ['p2', 'Pregunta 2', 'pregunta2']);
                 const p4 = getVal(r, ['p4', 'Pregunta 4', 'pregunta4']);
