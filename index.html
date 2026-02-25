@@ -12,8 +12,6 @@
         .card-step.active { display: block; animation: fadeIn 0.5s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .school-option:checked + label { border-color: #3b82f6; background-color: #eff6ff; }
-        
-        /* Estil per als consells d'escriptura */
         .escriptura-feedback { font-size: 0.75rem; transition: color 0.3s ease; }
     </style>
 </head>
@@ -44,13 +42,13 @@
                 </div>
             </div>
 
-            <!-- Preguntes amb sistema d'ajuda -->
+            <!-- Preguntes -->
             <div id="step1" class="card-step">
                 <div class="flex justify-between items-center mb-2">
                     <h2 class="text-lg font-semibold text-gray-700">1. Què és el que més t’ha agradat?</h2>
                     <span id="icon1" class="text-lg">✍️</span>
                 </div>
-                <textarea name="p1" lang="ca" spellcheck="true" placeholder="Avui m'ha agradat..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon1', 'msg1')"></textarea>
+                <textarea name="p1" lang="ca" placeholder="Avui m'ha agradat..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon1', 'msg1')"></textarea>
                 <p id="msg1" class="escriptura-feedback text-gray-400 mt-1">Recorda la majúscula inicial i el punt final.</p>
             </div>
 
@@ -59,7 +57,7 @@
                     <h2 class="text-lg font-semibold text-gray-700">2. Quines coses has après que abans no coneixies?</h2>
                     <span id="icon2" class="text-lg">✍️</span>
                 </div>
-                <textarea name="p2" lang="ca" spellcheck="true" placeholder="He après que..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon2', 'msg2')"></textarea>
+                <textarea name="p2" lang="ca" placeholder="He après que..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon2', 'msg2')"></textarea>
                 <p id="msg2" class="escriptura-feedback text-gray-400 mt-1">Recorda la majúscula inicial i el punt final.</p>
             </div>
 
@@ -68,7 +66,7 @@
                     <h2 class="text-lg font-semibold text-gray-700">3. Del que has après, què t’ha interessat més?</h2>
                     <span id="icon3" class="text-lg">✍️</span>
                 </div>
-                <textarea name="p3" lang="ca" spellcheck="true" placeholder="El que més m'ha interessat és..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon3', 'msg3')"></textarea>
+                <textarea name="p3" lang="ca" placeholder="El que més m'ha interessat és..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon3', 'msg3')"></textarea>
                 <p id="msg3" class="escriptura-feedback text-gray-400 mt-1">Recorda la majúscula inicial i el punt final.</p>
             </div>
 
@@ -77,7 +75,7 @@
                     <h2 class="text-lg font-semibold text-gray-700">4. En quins aspectes has tingut més dubtes?</h2>
                     <span id="icon4" class="text-lg">✍️</span>
                 </div>
-                <textarea name="p4" lang="ca" spellcheck="true" placeholder="He tingut dubtes en..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon4', 'msg4')"></textarea>
+                <textarea name="p4" lang="ca" placeholder="He tingut dubtes en..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon4', 'msg4')"></textarea>
                 <p id="msg4" class="escriptura-feedback text-gray-400 mt-1">Recorda la majúscula inicial i el punt final.</p>
             </div>
 
@@ -86,7 +84,7 @@
                     <h2 class="text-lg font-semibold text-gray-700">5. Quins dubtes et queden encara?</h2>
                     <span id="icon5" class="text-lg">✍️</span>
                 </div>
-                <textarea name="p5" lang="ca" spellcheck="true" placeholder="Encara tinc el dubte de..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon5', 'msg5')"></textarea>
+                <textarea name="p5" lang="ca" placeholder="Encara tinc el dubte de..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon5', 'msg5')"></textarea>
                 <p id="msg5" class="escriptura-feedback text-gray-400 mt-1">Recorda la majúscula inicial i el punt final.</p>
             </div>
 
@@ -107,6 +105,7 @@
     </div>
 
     <script>
+        // --- CONFIGURACIÓ ---
         const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbz3n4UoNc-aL47QJda96KT6vpn24Offgpqg-CqpUNb9Bur57nP_OhkrI1vuii5tCqtufg/exec";
 
         let step = 0;
@@ -114,22 +113,18 @@
         const nextBtn = document.getElementById('nextBtn');
         const prevBtn = document.getElementById('prevBtn');
 
-        // FUNCIÓ D'AJUDA ORTOGRÀFICA
         function ajudaEscriptura(el, iconId, msgId) {
             let val = el.value;
             const icon = document.getElementById(iconId);
             const msg = document.getElementById(msgId);
 
             if (val.length > 0) {
-                // Majúscula inicial automàtica
                 if (val.length === 1) {
                     el.value = val.charAt(0).toUpperCase();
                 }
-                // Majúscula automàtica després de punt i espai
                 el.value = el.value.replace(/\. \s*([a-zàéèíóòúü])/g, (match, p1) => ". " + p1.toUpperCase());
             }
 
-            // Validació visual bàsica
             const textNet = val.trim();
             const tePuntFinal = textNet.endsWith('.') || textNet.endsWith('!') || textNet.endsWith('?');
             const teMajusculaInici = /^[A-ZÀÉÈÍÓÒÚÜ]/.test(textNet);
@@ -137,11 +132,13 @@
             if (textNet.length > 5 && tePuntFinal && teMajusculaInici) {
                 icon.innerText = "✨";
                 msg.innerText = "Molt bé! Sembla ben escrit.";
-                msg.classList.replace('text-gray-400', 'text-green-500');
+                msg.classList.remove('text-gray-400');
+                msg.classList.add('text-green-500');
             } else {
                 icon.innerText = "✍️";
                 msg.innerText = "Recorda la majúscula inicial i el punt final.";
-                msg.classList.replace('text-green-500', 'text-gray-400');
+                msg.classList.remove('text-green-500');
+                msg.classList.add('text-gray-400');
             }
         }
 
@@ -158,7 +155,6 @@
             form.classList.remove('hidden');
             document.getElementById('success').classList.add('hidden');
             nextBtn.disabled = false;
-            // Resetejar icones i missatges
             for(let i=1; i<=5; i++) {
                 document.getElementById('icon'+i).innerText = "✍️";
                 document.getElementById('msg'+i).innerText = "Recorda la majúscula inicial i el punt final.";
@@ -179,24 +175,26 @@
                 nextBtn.disabled = true;
                 nextBtn.innerText = "Enviant...";
                 
-                const dades = {
-                    escola: document.querySelector('input[name="escola"]:checked').value,
-                    pregunta1: form.p1.value,
-                    pregunta2: form.p2.value,
-                    pregunta3: form.p3.value,
-                    pregunta4: form.p4.value,
-                    pregunta5: form.p5.value
-                };
+                const params = new URLSearchParams();
+                params.append('escola', document.querySelector('input[name="escola"]:checked').value);
+                params.append('pregunta1', form.p1.value);
+                params.append('pregunta2', form.p2.value);
+                params.append('pregunta3', form.p3.value);
+                params.append('pregunta4', form.p4.value);
+                params.append('pregunta5', form.p5.value);
 
                 try {
                     await fetch(URL_GOOGLE_SCRIPT, {
                         method: 'POST',
                         mode: 'no-cors',
-                        body: JSON.stringify(dades)
+                        headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+                        body: params.toString()
                     });
+                    
                     form.classList.add('hidden');
                     document.getElementById('success').classList.remove('hidden');
                 } catch (e) {
+                    console.error(e);
                     alert("Hi ha hagut un error en l'enviament. Revisa la connexió.");
                     nextBtn.disabled = false;
                     nextBtn.innerText = "Enviar ✨";
@@ -208,9 +206,3 @@
     </script>
 </body>
 </html>
-
-
-
-
-
-
