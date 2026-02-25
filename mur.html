@@ -163,7 +163,7 @@
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyd8EMwdnW3MVat7v7zWbj5n0CHM5sl8Ket0HZcKdEVAqGysjMqH0POzgTA6NX2LHue3Q/exec";
         
-        // POSA AQUÍ LA TEVA CLAU D'API DE GOOGLE AI STUDIO
+        // REVISA QUE AQUESTA CLAU SIGUI CORRECTA
         const apiKey = "AIzaSyC3lVpc3VnHLx5BgJJ0cvAbT9MxggM8FKY"; 
         
         let dadesRaw = [];
@@ -175,7 +175,7 @@
         const COLORS = ["sky", "amber", "emerald", "rose", "indigo"];
 
         async function fetchIA(payload) {
-            // Hem canviat el model a gemini-1.5-flash que és el més compatible
+            // HEM CORREGIT L'URL PER UTILITZAR gemini-1.5-flash I LA VERSIÓ v1beta
             const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
             try {
                 const res = await fetch(endpoint, {
@@ -184,14 +184,15 @@
                     body: JSON.stringify(payload)
                 });
                 
+                const data = await res.json();
+                
                 if (!res.ok) {
-                    const errorData = await res.json();
-                    throw new Error(errorData.error?.message || "Error en la petició a la IA");
+                    throw new Error(data.error?.message || "Error en la comunicació amb la IA");
                 }
                 
-                return await res.json();
+                return data;
             } catch (e) { 
-                console.error("Error detallat IA:", e);
+                console.error("Error IA:", e);
                 throw e; 
             }
         }
@@ -365,18 +366,16 @@
                     }
                 });
 
-                if (!processedText) {
-                    throw new Error("No s'ha pogut processar la resposta de la IA.");
-                }
+                if (!processedText) throw new Error("La IA no ha tornat cap contingut.");
 
                 content.innerHTML = `<div id="printableArea"><h1>Recull de veu</h1>${processedText}</div>`;
                 btnPdf.classList.remove('hidden');
             } catch (err) {
                 content.innerHTML = `
                     <div class="text-center py-10">
-                        <p class="text-red-500 font-bold mb-4">Ho sentim, hi ha hagut un problema.</p>
+                        <p class="text-red-500 font-bold mb-4">S'ha produït un error:</p>
                         <p class="text-slate-500 text-sm mb-6">${err.message}</p>
-                        <button onclick="generarInformeIA('${nomEscola.replace(/'/g, "\\'")}')" class="text-sky-600 underline font-bold">Tornar-ho a intentar</button>
+                        <button onclick="generarInformeIA('${nomEscola.replace(/'/g, "\\'")}')" class="bg-sky-100 text-sky-700 px-6 py-2 rounded-xl font-bold hover:bg-sky-200 transition-all">Tornar-ho a intentar</button>
                     </div>
                 `;
             }
