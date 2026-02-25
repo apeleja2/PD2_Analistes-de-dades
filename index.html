@@ -12,18 +12,20 @@
         .card-step.active { display: block; animation: fadeIn 0.5s ease-out; }
         @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
         .school-option:checked + label { border-color: #3b82f6; background-color: #eff6ff; }
-        .escriptura-feedback { font-size: 0.75rem; transition: color 0.3s ease; }
+        .escriptura-feedback { font-size: 0.75rem; transition: all 0.3s ease; }
+        textarea:focus { box-shadow: 0 0 0 4px rgba(59, 130, 246, 0.1); }
     </style>
 </head>
 <body class="min-h-screen flex items-center justify-center p-4">
 
     <div class="max-w-2xl w-full bg-white rounded-3xl shadow-xl overflow-hidden border-4 border-blue-100">
-        <div class="bg-blue-500 p-6 text-white text-center">
-            <h1 class="text-2xl font-bold">📊 La Veu dels Analistes de Dades</h1>
+        <div class="bg-blue-600 p-6 text-white text-center">
+            <h1 class="text-2xl font-bold">📊 La Veu dels Analistes</h1>
+            <p class="text-blue-100 text-sm">Reflexió final del projecte</p>
         </div>
         
         <div class="w-full bg-gray-100 h-2">
-            <div id="progressBar" class="bg-yellow-400 h-full w-0 transition-all duration-300"></div>
+            <div id="progressBar" class="bg-yellow-400 h-full w-0 transition-all duration-500"></div>
         </div>
 
         <form id="voiceForm" class="p-8">
@@ -31,14 +33,14 @@
             <div id="step0" class="card-step active">
                 <h2 class="text-xl font-semibold mb-6 text-center text-gray-700">Tria la teva escola:</h2>
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-3">
-                    <input type="radio" name="escola" id="e1" value="Escola La Canaleta" class="school-option hidden"><label for="e1" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola La Canaleta</label>
-                    <input type="radio" name="escola" id="e2" value="Escola La Canonja" class="school-option hidden"><label for="e2" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola La Canonja</label>
-                    <input type="radio" name="escola" id="e3" value="Escola La Portalada" class="school-option hidden"><label for="e3" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola La Portalada</label>
-                    <input type="radio" name="escola" id="e4" value="Escola Campclar" class="school-option hidden"><label for="e4" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola Campclar</label>
-                    <input type="radio" name="escola" id="e5" value="Escola Saavedra" class="school-option hidden"><label for="e5" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola Saavedra</label>
-                    <input type="radio" name="escola" id="e6" value="Escola El Roquissar" class="school-option hidden"><label for="e6" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola El Roquissar</label>
-                    <input type="radio" name="escola" id="e7" value="Escola Pau Delclòs" class="school-option hidden"><label for="e7" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola Pau Delclòs</label>
-                    <input type="radio" name="escola" id="e8" value="Escola Tarragona" class="school-option hidden"><label for="e8" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50">Escola Tarragona</label>
+                    <input type="radio" name="escola" id="e1" value="Escola La Canaleta" class="school-option hidden"><label for="e1" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50 transition-colors">Escola La Canaleta</label>
+                    <input type="radio" name="escola" id="e2" value="Escola La Canonja" class="school-option hidden"><label for="e2" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50 transition-colors">Escola La Canonja</label>
+                    <input type="radio" name="escola" id="e3" value="Escola La Portalada" class="school-option hidden"><label for="e3" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50 transition-colors">Escola La Portalada</label>
+                    <input type="radio" name="escola" id="e4" value="Escola Campclar" class="school-option hidden"><label for="e4" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50 transition-colors">Escola Campclar</label>
+                    <input type="radio" name="escola" id="e5" value="Escola Saavedra" class="school-option hidden"><label for="e5" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50 transition-colors">Escola Saavedra</label>
+                    <input type="radio" name="escola" id="e6" value="Escola El Roquissar" class="school-option hidden"><label for="e6" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50 transition-colors">Escola El Roquissar</label>
+                    <input type="radio" name="escola" id="e7" value="Escola Pau Delclòs" class="school-option hidden"><label for="e7" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50 transition-colors">Escola Pau Delclòs</label>
+                    <input type="radio" name="escola" id="e8" value="Escola Tarragona" class="school-option hidden"><label for="e8" class="block p-3 border-2 rounded-xl cursor-pointer text-center hover:bg-gray-50 transition-colors">Escola Tarragona</label>
                 </div>
             </div>
 
@@ -46,66 +48,65 @@
             <div id="step1" class="card-step">
                 <div class="flex justify-between items-center mb-2">
                     <h2 class="text-lg font-semibold text-gray-700">1. Què és el que més t’ha agradat?</h2>
-                    <span id="icon1" class="text-lg">✍️</span>
+                    <span id="icon1" class="text-xl">✍️</span>
                 </div>
-                <textarea name="p1" lang="ca" placeholder="Avui m'ha agradat..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon1', 'msg1')"></textarea>
-                <p id="msg1" class="escriptura-feedback text-gray-400 mt-1">Recorda la majúscula inicial i el punt final.</p>
+                <textarea name="p1" lang="ca" spellcheck="true" placeholder="Avui m'ha agradat..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none transition-all" oninput="ajudaEscriptura(this, 'icon1', 'msg1')"></textarea>
+                <p id="msg1" class="escriptura-feedback text-gray-400 mt-2">Recorda: majúscula inicial i punt final.</p>
             </div>
 
             <div id="step2" class="card-step">
                 <div class="flex justify-between items-center mb-2">
                     <h2 class="text-lg font-semibold text-gray-700">2. Quines coses has après que abans no coneixies?</h2>
-                    <span id="icon2" class="text-lg">✍️</span>
+                    <span id="icon2" class="text-xl">✍️</span>
                 </div>
-                <textarea name="p2" lang="ca" placeholder="He après que..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon2', 'msg2')"></textarea>
-                <p id="msg2" class="escriptura-feedback text-gray-400 mt-1">Recorda la majúscula inicial i el punt final.</p>
+                <textarea name="p2" lang="ca" spellcheck="true" placeholder="He après que..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none transition-all" oninput="ajudaEscriptura(this, 'icon2', 'msg2')"></textarea>
+                <p id="msg2" class="escriptura-feedback text-gray-400 mt-2">Recorda: majúscula inicial i punt final.</p>
             </div>
 
             <div id="step3" class="card-step">
                 <div class="flex justify-between items-center mb-2">
                     <h2 class="text-lg font-semibold text-gray-700">3. Del que has après, què t’ha interessat més?</h2>
-                    <span id="icon3" class="text-lg">✍️</span>
+                    <span id="icon3" class="text-xl">✍️</span>
                 </div>
-                <textarea name="p3" lang="ca" placeholder="El que més m'ha interessat és..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon3', 'msg3')"></textarea>
-                <p id="msg3" class="escriptura-feedback text-gray-400 mt-1">Recorda la majúscula inicial i el punt final.</p>
+                <textarea name="p3" lang="ca" spellcheck="true" placeholder="El que més m'ha interessat és..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none transition-all" oninput="ajudaEscriptura(this, 'icon3', 'msg3')"></textarea>
+                <p id="msg3" class="escriptura-feedback text-gray-400 mt-2">Recorda: majúscula inicial i punt final.</p>
             </div>
 
             <div id="step4" class="card-step">
                 <div class="flex justify-between items-center mb-2">
                     <h2 class="text-lg font-semibold text-gray-700">4. En quins aspectes has tingut més dubtes?</h2>
-                    <span id="icon4" class="text-lg">✍️</span>
+                    <span id="icon4" class="text-xl">✍️</span>
                 </div>
-                <textarea name="p4" lang="ca" placeholder="He tingut dubtes en..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon4', 'msg4')"></textarea>
-                <p id="msg4" class="escriptura-feedback text-gray-400 mt-1">Recorda la majúscula inicial i el punt final.</p>
+                <textarea name="p4" lang="ca" spellcheck="true" placeholder="He tingut dubtes en..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none transition-all" oninput="ajudaEscriptura(this, 'icon4', 'msg4')"></textarea>
+                <p id="msg4" class="escriptura-feedback text-gray-400 mt-2">Recorda: majúscula inicial i punt final.</p>
             </div>
 
             <div id="step5" class="card-step">
                 <div class="flex justify-between items-center mb-2">
                     <h2 class="text-lg font-semibold text-gray-700">5. Quins dubtes et queden encara?</h2>
-                    <span id="icon5" class="text-lg">✍️</span>
+                    <span id="icon5" class="text-xl">✍️</span>
                 </div>
-                <textarea name="p5" lang="ca" placeholder="Encara tinc el dubte de..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none" oninput="ajudaEscriptura(this, 'icon5', 'msg5')"></textarea>
-                <p id="msg5" class="escriptura-feedback text-gray-400 mt-1">Recorda la majúscula inicial i el punt final.</p>
+                <textarea name="p5" lang="ca" spellcheck="true" placeholder="Encara tinc el dubte de..." class="w-full p-4 border-2 border-blue-100 rounded-xl h-32 focus:border-blue-400 outline-none transition-all" oninput="ajudaEscriptura(this, 'icon5', 'msg5')"></textarea>
+                <p id="msg5" class="escriptura-feedback text-gray-400 mt-2">Recorda: majúscula inicial i punt final.</p>
             </div>
 
-            <div class="mt-8 flex justify-between">
-                <button type="button" id="prevBtn" class="invisible px-4 py-2 text-gray-400 font-semibold">Anterior</button>
-                <button type="button" id="nextBtn" class="px-8 py-3 bg-blue-500 text-white font-bold rounded-full shadow-lg hover:bg-blue-600 transition-all">Següent ➔</button>
+            <div class="mt-8 flex justify-between items-center">
+                <button type="button" id="prevBtn" class="invisible px-6 py-2 text-blue-600 font-semibold hover:bg-blue-50 rounded-xl transition-colors">Anterior</button>
+                <button type="button" id="nextBtn" class="px-10 py-4 bg-blue-600 text-white font-bold rounded-2xl shadow-lg hover:bg-blue-700 active:scale-95 transition-all">Següent ➔</button>
             </div>
         </form>
 
-        <div id="success" class="hidden p-12 text-center">
-            <div class="text-6xl mb-4 text-green-500">⭐</div>
-            <h2 class="text-2xl font-bold text-green-600">Enviat correctament!</h2>
-            <p class="mt-2 text-gray-600">Moltes gràcies per compartir la teva reflexió.</p>
-            <button onclick="reiniciarFormulari()" class="mt-8 px-6 py-2 border-2 border-blue-500 text-blue-500 font-bold rounded-full hover:bg-blue-50 transition-colors">
+        <div id="success" class="hidden p-12 text-center animate-in fade-in duration-500">
+            <div class="text-7xl mb-6">🚀</div>
+            <h2 class="text-3xl font-bold text-blue-600 mb-2">Missió completada!</h2>
+            <p class="text-gray-600 mb-8">Les teves dades han estat enviades correctament a la base de dades dels analistes.</p>
+            <button onclick="reiniciarFormulari()" class="px-8 py-3 bg-white border-2 border-blue-600 text-blue-600 font-bold rounded-2xl hover:bg-blue-50 transition-all">
                 Enviar una altra resposta
             </button>
         </div>
     </div>
 
     <script>
-        // --- CONFIGURACIÓ ---
         const URL_GOOGLE_SCRIPT = "https://script.google.com/macros/s/AKfycbz3n4UoNc-aL47QJda96KT6vpn24Offgpqg-CqpUNb9Bur57nP_OhkrI1vuii5tCqtufg/exec";
 
         let step = 0;
@@ -113,32 +114,52 @@
         const nextBtn = document.getElementById('nextBtn');
         const prevBtn = document.getElementById('prevBtn');
 
+        // Funció millorada per a l'ajuda a l'escriptura
         function ajudaEscriptura(el, iconId, msgId) {
             let val = el.value;
             const icon = document.getElementById(iconId);
             const msg = document.getElementById(msgId);
 
             if (val.length > 0) {
+                // 1. Corregir la primera lletra absoluta del text
                 if (val.length === 1) {
-                    el.value = val.charAt(0).toUpperCase();
+                    val = val.toUpperCase();
                 }
-                el.value = el.value.replace(/\. \s*([a-zàéèíóòúü])/g, (match, p1) => ". " + p1.toUpperCase());
+
+                // 2. Corregir majúscules després de punts (inclou salts de línia i espais múltiples)
+                // Busca un punt, exclamació o interrogant seguit d'espais i una lletra minúscula
+                val = val.replace(/([\.\!\?]\s*)([a-zàéèíóòúü])/g, (match, puntuacio, lletra) => {
+                    return puntuacio + lletra.toUpperCase();
+                });
+
+                // Si hem fet canvis, els apliquem al camp de text mantenint la posició del cursor
+                if (el.value !== val) {
+                    const start = el.selectionStart;
+                    const end = el.selectionEnd;
+                    el.value = val;
+                    el.setSelectionRange(start, end);
+                }
             }
 
+            // Validació visual per a l'estudiant
             const textNet = val.trim();
-            const tePuntFinal = textNet.endsWith('.') || textNet.endsWith('!') || textNet.endsWith('?');
+            const tePuntFinal = /[\.\!\?]$/.test(textNet);
             const teMajusculaInici = /^[A-ZÀÉÈÍÓÒÚÜ]/.test(textNet);
+            const longitudMinima = textNet.length > 10;
 
-            if (textNet.length > 5 && tePuntFinal && teMajusculaInici) {
+            if (teMajusculaInici && tePuntFinal && longitudMinima) {
                 icon.innerText = "✨";
-                msg.innerText = "Molt bé! Sembla ben escrit.";
-                msg.classList.remove('text-gray-400');
-                msg.classList.add('text-green-500');
+                msg.innerText = "Molt bé! La frase està ben estructurada.";
+                msg.className = "escriptura-feedback text-green-600 font-medium mt-2";
             } else {
                 icon.innerText = "✍️";
-                msg.innerText = "Recorda la majúscula inicial i el punt final.";
-                msg.classList.remove('text-green-500');
-                msg.classList.add('text-gray-400');
+                let suggeriment = "Recorda: majúscula inicial i punt final.";
+                if (textNet.length > 0 && !teMajusculaInici) suggeriment = "Comença amb majúscula! ⬆️";
+                else if (textNet.length > 5 && !tePuntFinal) suggeriment = "T'hi falta el punt final! 🏁";
+                else if (textNet.length > 0 && !longitudMinima) suggeriment = "Explica't una mica més... 📝";
+                
+                msg.innerText = suggeriment;
+                msg.className = "escriptura-feedback text-gray-400 mt-2";
             }
         }
 
@@ -155,17 +176,18 @@
             form.classList.remove('hidden');
             document.getElementById('success').classList.add('hidden');
             nextBtn.disabled = false;
+            // Reiniciar els missatges d'ajuda
             for(let i=1; i<=5; i++) {
                 document.getElementById('icon'+i).innerText = "✍️";
-                document.getElementById('msg'+i).innerText = "Recorda la majúscula inicial i el punt final.";
-                document.getElementById('msg'+i).className = "escriptura-feedback text-gray-400 mt-1";
+                document.getElementById('msg'+i).innerText = "Recorda: majúscula inicial i punt final.";
+                document.getElementById('msg'+i).className = "escriptura-feedback text-gray-400 mt-2";
             }
             update();
         }
 
         nextBtn.onclick = async () => {
             if (step === 0 && !document.querySelector('input[name="escola"]:checked')) {
-                return alert("Si us plau, tria la teva escola!");
+                return; // O podries mostrar un missatge personalitzat aquí
             }
             
             if (step < 5) {
@@ -195,7 +217,7 @@
                     document.getElementById('success').classList.remove('hidden');
                 } catch (e) {
                     console.error(e);
-                    alert("Hi ha hagut un error en l'enviament. Revisa la connexió.");
+                    alert("Hi ha hagut un error en l'enviament. Revisa la teva connexió.");
                     nextBtn.disabled = false;
                     nextBtn.innerText = "Enviar ✨";
                 }
