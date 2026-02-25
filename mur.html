@@ -5,7 +5,6 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anàlisi de Reflexions - Veu dels Analistes</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- Llibreria per a PDFs -->
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
@@ -18,10 +17,16 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .chip { cursor: pointer; transition: all 0.2s ease; user-select: none; }
         .chip-active { background-color: #3b82f6 !important; color: white !important; border-color: #2563eb !important; }
-        
-        /* Estils per a l'informe generat */
         .report-modal { animation: slideUp 0.3s ease-out; }
         @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+        
+        /* Estils per al PDF i visualització de l'informe */
+        #printableArea h1 { font-size: 1.875rem; font-weight: 800; color: #1e293b; margin-bottom: 1.5rem; border-bottom: 2px solid #3b82f6; padding-bottom: 0.5rem; }
+        #printableArea h2 { font-size: 1.25rem; font-weight: 700; color: #334155; margin-top: 2rem; margin-bottom: 1rem; display: flex; align-items: center; gap: 0.5rem; }
+        #printableArea p { margin-bottom: 1rem; line-height: 1.6; }
+        #printableArea ul { list-style-type: disc; margin-left: 1.5rem; margin-bottom: 1.5rem; }
+        #printableArea li { margin-bottom: 0.5rem; }
+        #printableArea blockquote { font-style: italic; border-left: 4px solid #e2e8f0; padding-left: 1rem; margin: 1rem 0; color: #475569; background: #f8fafc; padding: 1rem; border-radius: 0 0.75rem 0.75rem 0; }
     </style>
 </head>
 <body class="min-h-screen">
@@ -36,17 +41,17 @@
                 </div>
                 <div>
                     <h1 class="font-bold text-slate-800 text-xl tracking-tight">Panell d'Analistes</h1>
-                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Respostes sincronitzades amb Google Sheets</p>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">IA INTEGRADA - RESUMS AUTOMÀTICS</p>
                 </div>
             </div>
 
             <div class="flex items-center gap-6">
                 <div class="text-right">
-                    <span class="block text-[10px] text-slate-400 font-bold uppercase">Escoles Actives</span>
+                    <span class="block text-[10px] text-slate-400 font-bold uppercase">Escoles</span>
                     <span id="statEscoles" class="text-xl font-bold text-blue-600">0</span>
                 </div>
                 <div class="text-right border-l pl-6 border-slate-200">
-                    <span class="block text-[10px] text-slate-400 font-bold uppercase">Total Respostes</span>
+                    <span class="block text-[10px] text-slate-400 font-bold uppercase">Respostes</span>
                     <span id="statRespostes" class="text-xl font-bold text-blue-600">0</span>
                 </div>
                 <button onclick="carregarDades()" id="btnRefresh" class="ml-4 bg-slate-100 hover:bg-slate-200 p-2.5 rounded-full transition-colors">
@@ -59,41 +64,37 @@
     </nav>
 
     <main class="max-w-full mx-auto p-4 md:p-8">
-        
         <div class="mb-10 text-center">
-            <h2 class="text-3xl font-extrabold text-slate-800 mb-2">✨ La Veu dels Analistes</h2>
-            <p class="text-slate-500 mb-6 italic">Visualització i generació d'informes amb IA</p>
-            
-            <div id="filterWrapper" class="flex flex-wrap justify-center gap-2 max-w-5xl mx-auto bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
-                <p class="text-slate-400 italic">Esperant dades...</p>
+            <h2 class="text-3xl font-extrabold text-slate-800 mb-2">✨ Mur de Reflexions IA</h2>
+            <div id="filterWrapper" class="flex flex-wrap justify-center gap-2 max-w-5xl mx-auto bg-white p-6 rounded-3xl shadow-sm border border-slate-100 mt-6">
+                <p class="text-slate-400 italic">Carregant centres...</p>
             </div>
         </div>
 
         <div id="loading" class="hidden flex flex-col items-center justify-center py-20">
             <div class="loader mb-4"></div>
-            <p class="text-slate-500 font-medium">Carregant dades del full de càlcul...</p>
+            <p class="text-slate-500 font-medium text-center">Sincronitzant amb Google Sheets...</p>
         </div>
 
         <div id="mainContent" class="space-y-12"></div>
 
         <div id="emptyState" class="hidden text-center py-24">
             <div class="text-6xl mb-4">🔍</div>
-            <h3 class="text-xl font-bold text-slate-700">No hi ha dades per mostrar</h3>
-            <p id="emptyMsg" class="text-slate-400">Verifica el format de les dades o selecciona un centre.</p>
+            <h3 class="text-xl font-bold text-slate-700">No s'han trobat dades</h3>
+            <p id="emptyMsg" class="text-slate-400">Verifica que el formulari tingui respostes.</p>
         </div>
-
     </main>
 
-    <!-- Modal de l'Informe -->
+    <!-- Modal de l'Informe IA -->
     <div id="reportModal" class="hidden fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col report-modal">
             <div class="p-6 border-b flex justify-between items-center bg-slate-50">
                 <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
-                    <span class="text-2xl">📝</span> Informe d'Anàlisi IA
+                    <span class="text-2xl">🤖</span> Informe d'Intel·ligència Artificial
                 </h3>
                 <div class="flex gap-2">
-                    <button onclick="descarregarPDF()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2">
-                        📥 Descarregar PDF
+                    <button id="btnDownloadPDF" onclick="descarregarPDF()" class="hidden bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2">
+                        📥 Baixar PDF
                     </button>
                     <button onclick="tancarModal()" class="text-slate-400 hover:text-slate-600 p-2">
                         <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -103,21 +104,35 @@
                 </div>
             </div>
             <div id="reportContent" class="p-8 overflow-y-auto custom-scroll text-slate-700 leading-relaxed bg-white">
-                <!-- Contingut generat per IA -->
+                <!-- Contingut IA -->
             </div>
         </div>
     </div>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyd8EMwdnW3MVat7v7zWbj5n0CHM5sl8Ket0HZcKdEVAqGysjMqH0POzgTA6NX2LHue3Q/exec";
-        const apiKey = ""; // La plataforma injectarà la clau automàticament
+        const apiKey = ""; // S'injecta automàticament
         
         let dadesRaw = [];
         let escolesDisponibles = [];
         let escolesSeleccionades = new Set();
         let clauEscola = ""; 
-
         const TITOLS_PREGUNTES = ["Més destacat", "Aprenentatges", "Aplicació pràctica", "Dificultats", "Dubtes"];
+
+        // Funció d'ajuda per fer crides a l'API amb reintentos
+        async function fetchWithRetry(url, options, retries = 5, backoff = 1000) {
+            try {
+                const response = await fetch(url, options);
+                if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
+                return await response.json();
+            } catch (error) {
+                if (retries > 0) {
+                    await new Promise(resolve => setTimeout(resolve, backoff));
+                    return fetchWithRetry(url, options, retries - 1, backoff * 2);
+                }
+                throw error;
+            }
+        }
 
         async function carregarDades() {
             const btn = document.getElementById('refreshIcon');
@@ -139,8 +154,7 @@
                     document.getElementById('emptyState').classList.remove('hidden');
                 }
             } catch (e) {
-                console.error("Error carregant dades", e);
-                document.getElementById('emptyMsg').innerText = "Error de connexió: " + e.message;
+                document.getElementById('emptyMsg').innerText = "Error de connexió al full de càlcul.";
                 document.getElementById('emptyState').classList.remove('hidden');
             } finally {
                 btn.classList.remove('animate-spin');
@@ -150,21 +164,19 @@
 
         function detectarClauEscola(primerObjecte) {
             const keys = Object.keys(primerObjecte);
-            const keywords = ['escola', 'centre', 'school', 'nom', 'center'];
+            const keywords = ['escola', 'centre', 'school', 'nom'];
             for (let kw of keywords) {
                 let found = keys.find(k => k.toLowerCase().includes(kw));
                 if (found) { clauEscola = found; return; }
             }
-            clauEscola = keys.find(k => !k.toLowerCase().includes('time') && !k.toLowerCase().includes('data')) || keys[0];
+            clauEscola = keys[0];
         }
 
         function processarDades() {
             const totes = dadesRaw.map(item => item[clauEscola] ? item[clauEscola].toString().trim() : null)
                                   .filter(val => val && val !== "" && val !== "-");
             escolesDisponibles = [...new Set(totes)].sort();
-            if (escolesSeleccionades.size === 0) {
-                escolesDisponibles.forEach(e => escolesSeleccionades.add(e));
-            }
+            if (escolesSeleccionades.size === 0) escolesDisponibles.forEach(e => escolesSeleccionades.add(e));
             actualitzarUI();
         }
 
@@ -178,24 +190,10 @@
         function renderFiltres() {
             const wrapper = document.getElementById('filterWrapper');
             wrapper.innerHTML = '';
-            if (escolesDisponibles.length === 0) {
-                wrapper.innerHTML = '<p class="text-red-500 font-bold">No s\'ha detectat cap columna amb noms d\'escoles.</p>';
-                return;
-            }
-            const btnTotes = document.createElement('button');
-            const totesActives = escolesSeleccionades.size === escolesDisponibles.length;
-            btnTotes.className = `chip px-5 py-2.5 rounded-full text-sm font-bold border transition-all ${totesActives ? 'chip-active shadow-md' : 'bg-slate-50 border-slate-200 text-slate-600'}`;
-            btnTotes.innerText = "Totes";
-            btnTotes.onclick = () => {
-                if (totesActives) escolesSeleccionades.clear();
-                else escolesDisponibles.forEach(e => escolesSeleccionades.add(e));
-                actualitzarUI();
-            };
-            wrapper.appendChild(btnTotes);
             escolesDisponibles.forEach(escola => {
                 const btn = document.createElement('button');
                 const activa = escolesSeleccionades.has(escola);
-                btn.className = `chip px-5 py-2.5 rounded-full text-sm font-semibold border transition-all ${activa ? 'chip-active shadow-md' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300'}`;
+                btn.className = `chip px-5 py-2.5 rounded-full text-sm font-semibold border transition-all ${activa ? 'chip-active shadow-md' : 'bg-white border-slate-200 text-slate-500'}`;
                 btn.innerText = escola;
                 btn.onclick = () => {
                     if (activa) escolesSeleccionades.delete(escola);
@@ -208,11 +206,7 @@
 
         function renderContingut() {
             const container = document.getElementById('mainContent');
-            const empty = document.getElementById('emptyState');
             container.innerHTML = '';
-            if (escolesSeleccionades.size === 0) { empty.classList.remove('hidden'); return; }
-            empty.classList.add('hidden');
-
             Array.from(escolesSeleccionades).sort().forEach(escolaNom => {
                 const respostes = dadesRaw.filter(d => d[clauEscola] && d[clauEscola].toString().trim() === escolaNom);
                 const card = document.createElement('div');
@@ -225,17 +219,15 @@
                             </div>
                             <div>
                                 <h3 class="text-2xl font-bold text-slate-800">${escolaNom}</h3>
-                                <p class="text-xs text-blue-600 font-bold uppercase tracking-widest">${respostes.length} reflexions registrades</p>
+                                <p class="text-xs text-blue-600 font-bold uppercase tracking-widest">${respostes.length} respostes d'alumnes</p>
                             </div>
                         </div>
-                        <button onclick="generarInformeIA('${escolaNom}')" class="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-5 py-2.5 rounded-2xl text-sm font-bold transition-all flex items-center gap-2">
+                        <button onclick="generarInformeIA('${escolaNom.replace(/'/g, "\\'")}')" class="bg-blue-600 text-white hover:bg-blue-700 px-6 py-2.5 rounded-2xl text-sm font-bold shadow-md transition-all flex items-center gap-2">
                             <span>✨</span> Generar Informe IA
                         </button>
                     </div>
-                    <div class="p-6 md:p-8">
-                        <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
-                            ${generarColumnes(respostes)}
-                        </div>
+                    <div class="p-6 md:p-8 grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
+                        ${generarColumnes(respostes)}
                     </div>
                 `;
                 container.appendChild(card);
@@ -246,19 +238,15 @@
             let html = '';
             const clausPossibles = Object.keys(dadesRaw[0]);
             for (let i = 0; i < 5; i++) {
-                const clauActual = clausPossibles.find(k => k.toLowerCase().includes(`pregunta${i+1}`) || k.toLowerCase().includes(`p${i+1}`)) || clausPossibles[i + 2];
+                const clauActual = clausPossibles[i + 2]; // Ometem marca de temps i escola
                 html += `
-                    <div class="flex flex-col">
-                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 px-2 flex items-center gap-2">
+                    <div>
+                        <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 flex items-center gap-2">
                             <span class="w-2 h-2 rounded-full bg-blue-400"></span>
-                            ${TITOLS_PREGUNTES[i] || 'Pregunta ' + (i+1)}
+                            ${TITOLS_PREGUNTES[i]}
                         </h4>
-                        <div class="space-y-3 max-h-[400px] overflow-y-auto pr-2 custom-scroll">
-                            ${respostes.map(r => {
-                                const text = r[clauActual] || "-";
-                                if (text === "-" || text === "") return "";
-                                return `<div class="answer-pill p-4 rounded-xl text-[13px] text-slate-600 leading-relaxed shadow-sm border border-slate-50">${text}</div>`;
-                            }).join('')}
+                        <div class="space-y-3 max-h-[350px] overflow-y-auto pr-2 custom-scroll">
+                            ${respostes.map(r => r[clauActual] ? `<div class="answer-pill p-4 rounded-xl text-[13px] text-slate-600 border border-slate-50">${r[clauActual]}</div>` : '').join('')}
                         </div>
                     </div>
                 `;
@@ -266,36 +254,49 @@
             return html;
         }
 
-        // --- LÒGICA D'IA I INFORMES ---
+        // --- IA LOGIC ---
 
         async function generarInformeIA(nomEscola) {
             const respostes = dadesRaw.filter(d => d[clauEscola] && d[clauEscola].toString().trim() === nomEscola);
             const modal = document.getElementById('reportModal');
             const content = document.getElementById('reportContent');
+            const btnPdf = document.getElementById('btnDownloadPDF');
             
             modal.classList.remove('hidden');
+            btnPdf.classList.add('hidden');
             content.innerHTML = `
-                <div class="flex flex-col items-center justify-center py-20">
-                    <div class="loader mb-4"></div>
-                    <p class="text-slate-500 font-medium">Gemini està analitzant les respostes dels alumnes de ${nomEscola}...</p>
+                <div class="flex flex-col items-center justify-center py-20 text-center">
+                    <div class="loader mb-6"></div>
+                    <p class="text-slate-600 font-bold text-lg">Analitzant les dades de ${nomEscola}...</p>
+                    <p class="text-slate-400 text-sm mt-2">Això pot trigar uns 10-15 segons mentre Gemini processa les reflexions.</p>
                 </div>
             `;
 
-            const prompt = `Analitza aquestes respostes d'alumnes de l'escola "${nomEscola}" sobre un projecte d'analistes de dades. 
-            Les dades són un JSON: ${JSON.stringify(respostes)}.
+            // Preparem les dades simplificades per estalviar tokens
+            const dadesSimplificades = respostes.map(r => {
+                const claus = Object.keys(r);
+                return {
+                    p1: r[claus[2]], p2: r[claus[3]], p3: r[claus[4]], p4: r[claus[5]], p5: r[claus[6]]
+                };
+            });
+
+            const prompt = `Ets un expert analista educatiu. Analitza aquestes dades de l'escola "${nomEscola}". 
+            Dades JSON de les respostes dels alumnes: ${JSON.stringify(dadesSimplificades)}
             
-            Genera un informe estructurat en català amb:
-            1. Títol: Resum de l'Anàlisi de Reflexions - ${nomEscola}
-            2. Breu resum general de com ha anat la proposta.
-            3. Per a cadascuna de les 5 preguntes (Més destacat, Aprenentatges, Interessos, Dificultats, Dubtes):
-               - Un resum dels punts més repetits.
-               - Una selecció de les 2 millors respostes (literals).
-            4. Conclusions i recomanacions per al centre.
+            OBJECTIU: Crea un informe en CATALÀ per al claustre de mestres.
+            FORMAT EXIGIT: HTML (usa <h1>, <h2>, <p>, <ul>, <li> i <blockquote>).
+            ESTRUCTURA:
+            1. Títol H1: Informe de Reflexió d'Aprenentatge: ${nomEscola}
+            2. Secció H2: Resum Executiu. (Breu resum del sentiment general dels alumnes).
+            3. Secció H2: Punts clau per pregunta. Analitza què diuen sobre: ${TITOLS_PREGUNTES.join(', ')}.
+            4. Secció H2: Veus de l'aula. Selecciona les 3 respostes més representatives i posa-les com a <blockquote>.
+            5. Secció H2: Recomanacions Pedagògiques. (Suggeriments basats en les dificultats trobades).
             
-            Usa format HTML net (h1, h2, p, ul, li, blockquote).`;
+            Sigues professional i encoratjador. No incloguis res de codi, només el text HTML de l'informe.`;
 
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+                const result = await fetchWithRetry(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify({
@@ -303,27 +304,35 @@
                     })
                 });
 
-                const result = await response.json();
-                const textIA = result.candidates?.[0]?.content?.parts?.[0]?.text || "No s'ha pogut generar l'informe.";
+                const textIA = result.candidates?.[0]?.content?.parts?.[0]?.text;
+                if (!textIA) throw new Error("La IA no ha retornat contingut.");
+                
                 content.innerHTML = `<div id="printableArea">${textIA}</div>`;
+                btnPdf.classList.remove('hidden');
             } catch (error) {
-                content.innerHTML = `<p class="text-red-500">Error al connectar amb la IA: ${error.message}</p>`;
+                console.error(error);
+                content.innerHTML = `
+                    <div class="text-center py-12">
+                        <div class="text-5xl mb-4">⚠️</div>
+                        <h4 class="text-lg font-bold text-red-600">No s'ha pogut generar l'informe</h4>
+                        <p class="text-slate-500 mt-2">Error: ${error.message}</p>
+                        <button onclick="generarInformeIA('${nomEscola.replace(/'/g, "\\'")}')" class="mt-6 bg-slate-800 text-white px-6 py-2 rounded-xl font-bold">Tornar-ho a intentar</button>
+                    </div>
+                `;
             }
         }
 
-        function tancarModal() {
-            document.getElementById('reportModal').classList.add('hidden');
-        }
+        function tancarModal() { document.getElementById('reportModal').classList.add('hidden'); }
 
         function descarregarPDF() {
             const element = document.getElementById('printableArea');
-            const escola = document.querySelector('#reportContent h1')?.innerText || "Informe";
+            const titol = document.querySelector('#printableArea h1')?.innerText || "Informe";
             const opt = {
-                margin: 1,
-                filename: `Informe_${escola.replace(/\s+/g, '_')}.pdf`,
+                margin: 0.5,
+                filename: `${titol.replace(/\s+/g, '_')}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
-                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+                html2canvas: { scale: 2, useCORS: true },
+                jsPDF: { unit: 'in', format: 'a4', orientation: 'portrait' }
             };
             html2pdf().set(opt).from(element).save();
         }
