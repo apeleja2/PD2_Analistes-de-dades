@@ -5,6 +5,8 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Anàlisi de Reflexions - Veu dels Analistes</title>
     <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Llibreria per a PDFs -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
         body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
@@ -16,6 +18,10 @@
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
         .chip { cursor: pointer; transition: all 0.2s ease; user-select: none; }
         .chip-active { background-color: #3b82f6 !important; color: white !important; border-color: #2563eb !important; }
+        
+        /* Estils per a l'informe generat */
+        .report-modal { animation: slideUp 0.3s ease-out; }
+        @keyframes slideUp { from { transform: translateY(20px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
     </style>
 </head>
 <body class="min-h-screen">
@@ -56,7 +62,7 @@
         
         <div class="mb-10 text-center">
             <h2 class="text-3xl font-extrabold text-slate-800 mb-2">✨ La Veu dels Analistes</h2>
-            <p class="text-slate-500 mb-6 italic">Visualització de reflexions en temps real</p>
+            <p class="text-slate-500 mb-6 italic">Visualització i generació d'informes amb IA</p>
             
             <div id="filterWrapper" class="flex flex-wrap justify-center gap-2 max-w-5xl mx-auto bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
                 <p class="text-slate-400 italic">Esperant dades...</p>
@@ -78,8 +84,33 @@
 
     </main>
 
+    <!-- Modal de l'Informe -->
+    <div id="reportModal" class="hidden fixed inset-0 z-[60] bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-4xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col report-modal">
+            <div class="p-6 border-b flex justify-between items-center bg-slate-50">
+                <h3 class="text-xl font-bold text-slate-800 flex items-center gap-2">
+                    <span class="text-2xl">📝</span> Informe d'Anàlisi IA
+                </h3>
+                <div class="flex gap-2">
+                    <button onclick="descarregarPDF()" class="bg-blue-600 hover:bg-blue-700 text-white px-4 py-2 rounded-xl text-sm font-bold transition-colors flex items-center gap-2">
+                        📥 Descarregar PDF
+                    </button>
+                    <button onclick="tancarModal()" class="text-slate-400 hover:text-slate-600 p-2">
+                        <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12" />
+                        </svg>
+                    </button>
+                </div>
+            </div>
+            <div id="reportContent" class="p-8 overflow-y-auto custom-scroll text-slate-700 leading-relaxed bg-white">
+                <!-- Contingut generat per IA -->
+            </div>
+        </div>
+    </div>
+
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyd8EMwdnW3MVat7v7zWbj5n0CHM5sl8Ket0HZcKdEVAqGysjMqH0POzgTA6NX2LHue3Q/exec";
+        const apiKey = ""; // La plataforma injectarà la clau automàticament
         
         let dadesRaw = [];
         let escolesDisponibles = [];
@@ -117,42 +148,29 @@
             }
         }
 
-        // Aquesta funció busca quina columna conté el nom de l'escola
         function detectarClauEscola(primerObjecte) {
             const keys = Object.keys(primerObjecte);
-            // Prioritat per paraules clau
             const keywords = ['escola', 'centre', 'school', 'nom', 'center'];
-            
             for (let kw of keywords) {
                 let found = keys.find(k => k.toLowerCase().includes(kw));
-                if (found) {
-                    clauEscola = found;
-                    return;
-                }
+                if (found) { clauEscola = found; return; }
             }
-            // Si no en troba cap, agafa la primera columna que no sigui timestamp
             clauEscola = keys.find(k => !k.toLowerCase().includes('time') && !k.toLowerCase().includes('data')) || keys[0];
         }
 
         function processarDades() {
-            // Obtenir llista d'escoles úniques
             const totes = dadesRaw.map(item => item[clauEscola] ? item[clauEscola].toString().trim() : null)
                                   .filter(val => val && val !== "" && val !== "-");
-            
             escolesDisponibles = [...new Set(totes)].sort();
-            
-            // Si és la primera vegada, les seleccionem totes
             if (escolesSeleccionades.size === 0) {
                 escolesDisponibles.forEach(e => escolesSeleccionades.add(e));
             }
-
             actualitzarUI();
         }
 
         function actualitzarUI() {
             document.getElementById('statEscoles').innerText = escolesDisponibles.length;
             document.getElementById('statRespostes').innerText = dadesRaw.length;
-
             renderFiltres();
             renderContingut();
         }
@@ -160,13 +178,10 @@
         function renderFiltres() {
             const wrapper = document.getElementById('filterWrapper');
             wrapper.innerHTML = '';
-
             if (escolesDisponibles.length === 0) {
                 wrapper.innerHTML = '<p class="text-red-500 font-bold">No s\'ha detectat cap columna amb noms d\'escoles.</p>';
                 return;
             }
-
-            // Botó Totes
             const btnTotes = document.createElement('button');
             const totesActives = escolesSeleccionades.size === escolesDisponibles.length;
             btnTotes.className = `chip px-5 py-2.5 rounded-full text-sm font-bold border transition-all ${totesActives ? 'chip-active shadow-md' : 'bg-slate-50 border-slate-200 text-slate-600'}`;
@@ -177,8 +192,6 @@
                 actualitzarUI();
             };
             wrapper.appendChild(btnTotes);
-
-            // Botons per cada escola
             escolesDisponibles.forEach(escola => {
                 const btn = document.createElement('button');
                 const activa = escolesSeleccionades.has(escola);
@@ -197,25 +210,17 @@
             const container = document.getElementById('mainContent');
             const empty = document.getElementById('emptyState');
             container.innerHTML = '';
-
-            if (escolesSeleccionades.size === 0) {
-                empty.classList.remove('hidden');
-                return;
-            }
+            if (escolesSeleccionades.size === 0) { empty.classList.remove('hidden'); return; }
             empty.classList.add('hidden');
 
-            const seleccionadesArray = Array.from(escolesSeleccionades).sort();
-
-            seleccionadesArray.forEach(escolaNom => {
+            Array.from(escolesSeleccionades).sort().forEach(escolaNom => {
                 const respostes = dadesRaw.filter(d => d[clauEscola] && d[clauEscola].toString().trim() === escolaNom);
-                
                 const card = document.createElement('div');
                 card.className = "bg-white rounded-3xl shadow-sm border border-slate-200 overflow-hidden";
-                
                 card.innerHTML = `
-                    <div class="bg-blue-50/50 px-8 py-6 border-b border-blue-100 flex justify-between items-center">
+                    <div class="bg-blue-50/50 px-8 py-6 border-b border-blue-100 flex flex-col md:flex-row justify-between items-center gap-4">
                         <div class="flex items-center gap-4">
-                            <div class="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-lg shadow-blue-200">
+                            <div class="w-12 h-12 rounded-2xl bg-blue-600 flex items-center justify-center text-white font-bold text-xl shadow-lg">
                                 ${escolaNom.charAt(0)}
                             </div>
                             <div>
@@ -223,6 +228,9 @@
                                 <p class="text-xs text-blue-600 font-bold uppercase tracking-widest">${respostes.length} reflexions registrades</p>
                             </div>
                         </div>
+                        <button onclick="generarInformeIA('${escolaNom}')" class="bg-white border-2 border-blue-600 text-blue-600 hover:bg-blue-600 hover:text-white px-5 py-2.5 rounded-2xl text-sm font-bold transition-all flex items-center gap-2">
+                            <span>✨</span> Generar Informe IA
+                        </button>
                     </div>
                     <div class="p-6 md:p-8">
                         <div class="grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6">
@@ -237,14 +245,8 @@
         function generarColumnes(respostes) {
             let html = '';
             const clausPossibles = Object.keys(dadesRaw[0]);
-
             for (let i = 0; i < 5; i++) {
-                // Busquem una clau que contingui "p"+(i+1) o que sigui la i-èsima columna després de timestamp i escola
-                const clauActual = clausPossibles.find(k => 
-                    k.toLowerCase().includes(`pregunta${i+1}`) || 
-                    k.toLowerCase().includes(`p${i+1}`)
-                ) || clausPossibles[i + 2]; // Fallback simple
-
+                const clauActual = clausPossibles.find(k => k.toLowerCase().includes(`pregunta${i+1}`) || k.toLowerCase().includes(`p${i+1}`)) || clausPossibles[i + 2];
                 html += `
                     <div class="flex flex-col">
                         <h4 class="text-[10px] font-black text-slate-400 uppercase tracking-widest mb-4 px-2 flex items-center gap-2">
@@ -255,17 +257,75 @@
                             ${respostes.map(r => {
                                 const text = r[clauActual] || "-";
                                 if (text === "-" || text === "") return "";
-                                return `
-                                    <div class="answer-pill p-4 rounded-xl text-[13px] text-slate-600 leading-relaxed shadow-sm border border-slate-50">
-                                        ${text}
-                                    </div>
-                                `;
+                                return `<div class="answer-pill p-4 rounded-xl text-[13px] text-slate-600 leading-relaxed shadow-sm border border-slate-50">${text}</div>`;
                             }).join('')}
                         </div>
                     </div>
                 `;
             }
             return html;
+        }
+
+        // --- LÒGICA D'IA I INFORMES ---
+
+        async function generarInformeIA(nomEscola) {
+            const respostes = dadesRaw.filter(d => d[clauEscola] && d[clauEscola].toString().trim() === nomEscola);
+            const modal = document.getElementById('reportModal');
+            const content = document.getElementById('reportContent');
+            
+            modal.classList.remove('hidden');
+            content.innerHTML = `
+                <div class="flex flex-col items-center justify-center py-20">
+                    <div class="loader mb-4"></div>
+                    <p class="text-slate-500 font-medium">Gemini està analitzant les respostes dels alumnes de ${nomEscola}...</p>
+                </div>
+            `;
+
+            const prompt = `Analitza aquestes respostes d'alumnes de l'escola "${nomEscola}" sobre un projecte d'analistes de dades. 
+            Les dades són un JSON: ${JSON.stringify(respostes)}.
+            
+            Genera un informe estructurat en català amb:
+            1. Títol: Resum de l'Anàlisi de Reflexions - ${nomEscola}
+            2. Breu resum general de com ha anat la proposta.
+            3. Per a cadascuna de les 5 preguntes (Més destacat, Aprenentatges, Interessos, Dificultats, Dubtes):
+               - Un resum dels punts més repetits.
+               - Una selecció de les 2 millors respostes (literals).
+            4. Conclusions i recomanacions per al centre.
+            
+            Usa format HTML net (h1, h2, p, ul, li, blockquote).`;
+
+            try {
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        contents: [{ parts: [{ text: prompt }] }]
+                    })
+                });
+
+                const result = await response.json();
+                const textIA = result.candidates?.[0]?.content?.parts?.[0]?.text || "No s'ha pogut generar l'informe.";
+                content.innerHTML = `<div id="printableArea">${textIA}</div>`;
+            } catch (error) {
+                content.innerHTML = `<p class="text-red-500">Error al connectar amb la IA: ${error.message}</p>`;
+            }
+        }
+
+        function tancarModal() {
+            document.getElementById('reportModal').classList.add('hidden');
+        }
+
+        function descarregarPDF() {
+            const element = document.getElementById('printableArea');
+            const escola = document.querySelector('#reportContent h1')?.innerText || "Informe";
+            const opt = {
+                margin: 1,
+                filename: `Informe_${escola.replace(/\s+/g, '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2 },
+                jsPDF: { unit: 'in', format: 'letter', orientation: 'portrait' }
+            };
+            html2pdf().set(opt).from(element).save();
         }
 
         window.onload = carregarDades;
