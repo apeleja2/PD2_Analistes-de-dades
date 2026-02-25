@@ -42,7 +42,6 @@
         .chip { cursor: pointer; transition: all 0.2s; border-radius: 9999px; }
         .chip-active { background-color: #0284c7 !important; color: white !important; transform: scale(1.05); }
         
-        /* Estils per al "Recull de veu" */
         .report-body h1 { 
             font-size: 2.25rem; 
             font-weight: 800; 
@@ -140,7 +139,6 @@
         </div>
     </main>
 
-    <!-- Modal "Recull de Veu" -->
     <div id="reportModal" class="hidden fixed inset-0 z-[100] bg-slate-900/40 backdrop-blur-md flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-4xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col border border-white">
             <div class="px-10 py-6 border-b flex justify-between items-center bg-gradient-to-r from-sky-50 to-white">
@@ -164,6 +162,8 @@
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyd8EMwdnW3MVat7v7zWbj5n0CHM5sl8Ket0HZcKdEVAqGysjMqH0POzgTA6NX2LHue3Q/exec";
+        
+        // POSA AQUÍ LA TEVA CLAU D'API DE GOOGLE AI STUDIO
         const apiKey = "AIzaSyC3lVpc3VnHLx5BgJJ0cvAbT9MxggM8FKY"; 
         
         let dadesRaw = [];
@@ -175,15 +175,25 @@
         const COLORS = ["sky", "amber", "emerald", "rose", "indigo"];
 
         async function fetchIA(payload) {
-            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`;
+            // Hem canviat el model a gemini-1.5-flash que és el més compatible
+            const endpoint = `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${apiKey}`;
             try {
                 const res = await fetch(endpoint, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
                     body: JSON.stringify(payload)
                 });
+                
+                if (!res.ok) {
+                    const errorData = await res.json();
+                    throw new Error(errorData.error?.message || "Error en la petició a la IA");
+                }
+                
                 return await res.json();
-            } catch (e) { throw e; }
+            } catch (e) { 
+                console.error("Error detallat IA:", e);
+                throw e; 
+            }
         }
 
         async function carregarDades() {
@@ -342,7 +352,6 @@
                 const data = await fetchIA({ contents: [{ parts: [{ text: prompt }] }] });
                 let text = data.candidates?.[0]?.content?.parts?.[0]?.text || "";
 
-                // Processament del text per formatar la pregunta inicial
                 let lines = text.split('\n');
                 let processedText = "";
                 
@@ -356,10 +365,20 @@
                     }
                 });
 
+                if (!processedText) {
+                    throw new Error("No s'ha pogut processar la resposta de la IA.");
+                }
+
                 content.innerHTML = `<div id="printableArea"><h1>Recull de veu</h1>${processedText}</div>`;
                 btnPdf.classList.remove('hidden');
             } catch (err) {
-                content.innerHTML = `<p class="text-red-500">Error en la connexió. Torna-ho a provar.</p>`;
+                content.innerHTML = `
+                    <div class="text-center py-10">
+                        <p class="text-red-500 font-bold mb-4">Ho sentim, hi ha hagut un problema.</p>
+                        <p class="text-slate-500 text-sm mb-6">${err.message}</p>
+                        <button onclick="generarInformeIA('${nomEscola.replace(/'/g, "\\'")}')" class="text-sky-600 underline font-bold">Tornar-ho a intentar</button>
+                    </div>
+                `;
             }
         }
 
@@ -381,4 +400,3 @@
     </script>
 </body>
 </html>
-
