@@ -3,270 +3,290 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mur de Reflexions - Tauler del Mestre</title>
+    <title>Anàlisi de Reflexions - Veu dels Analistes</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Fredoka:wght@400;600&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700&display=swap" rel="stylesheet">
     <style>
-        body { font-family: 'Fredoka', sans-serif; background-color: #f0f7ff; }
-        .card { transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1); border-radius: 1.5rem; background: white; }
-        .card:hover { transform: translateY(-5px); box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.1); }
+        body { font-family: 'Inter', sans-serif; background-color: #f8fafc; color: #1e293b; }
+        .school-section { transition: all 0.3s ease; }
+        .answer-pill { background: white; border-left: 3px solid #3b82f6; }
         
-        .loader { border: 4px solid #f3f3f3; border-top: 4px solid #3b82f6; border-radius: 50%; width: 40px; height: 40px; animation: spin 1s linear infinite; }
+        /* Estils personalitzats per al scroll */
+        .custom-scroll::-webkit-scrollbar { width: 4px; }
+        .custom-scroll::-webkit-scrollbar-track { background: #f1f1f1; }
+        .custom-scroll::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 10px; }
+
+        .loader { border: 3px solid #e2e8f0; border-top: 3px solid #3b82f6; border-radius: 50%; width: 24px; height: 24px; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        /* Estils per als filtres tipus "pill" */
-        .filter-chip input { display: none; }
-        .filter-chip span {
-            display: inline-block;
-            padding: 10px 20px;
-            border-radius: 9999px;
-            background: #ffffff;
-            border: 2px solid #e2e8f0;
+
+        /* Estil per als botons de filtre */
+        .chip {
             cursor: pointer;
-            font-weight: 600;
-            transition: all 0.2s;
-            color: #64748b;
+            transition: all 0.2s ease;
+            user-select: none;
         }
-        .filter-chip input:checked + span {
-            background-color: #3b82f6;
-            color: white;
-            border-color: #3b82f6;
-            box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.4);
+        .chip-active {
+            background-color: #3b82f6 !important;
+            color: white !important;
+            border-color: #2563eb !important;
         }
     </style>
 </head>
-<body class="p-4 md:p-8">
+<body class="min-h-screen">
 
-    <div class="max-w-7xl mx-auto">
-        <!-- Indicadors superiors -->
-        <div class="flex flex-col md:flex-row justify-between items-center mb-8 gap-4 bg-white/50 p-4 rounded-2xl backdrop-blur-sm">
+    <!-- Barra de navegació fixa -->
+    <nav class="sticky top-0 z-50 bg-white/80 backdrop-blur-md border-b border-slate-200 px-6 py-4">
+        <div class="max-w-full mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
             <div class="flex items-center gap-3">
-                <div class="bg-blue-600 p-2 rounded-lg shadow-lg text-white">
+                <div class="bg-blue-600 text-white p-2 rounded-lg shadow-md">
                     <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6" fill="none" viewBox="0 0 24 24" stroke="currentColor">
-                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z" />
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 8v8m-4-5v5m-4-2v2m-2 4h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
                     </svg>
                 </div>
                 <div>
-                    <h2 class="font-bold text-blue-900 leading-none text-lg">Panell d'Analistes</h2>
-                    <p class="text-blue-500 text-xs mt-1">Sincronitzat amb Google Sheets</p>
+                    <h1 class="font-bold text-slate-800 text-xl tracking-tight">Panell d'Analistes</h1>
+                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Gestió de Grans Volums de Dades</p>
                 </div>
             </div>
-            <div class="flex gap-8">
-                <div class="text-center">
-                    <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Escoles</p>
-                    <p id="counterEscoles" class="text-2xl font-bold text-blue-600">0</p>
+
+            <div class="flex items-center gap-6">
+                <div class="text-right">
+                    <span class="block text-[10px] text-slate-400 font-bold uppercase">Centres Actius</span>
+                    <span id="statEscoles" class="text-xl font-bold text-blue-600">0</span>
                 </div>
-                <div class="text-center border-l pl-8 border-gray-200">
-                    <p class="text-[10px] uppercase font-bold text-gray-400 tracking-widest">Respostes</p>
-                    <p id="counterRespostes" class="text-2xl font-bold text-blue-600">0</p>
+                <div class="text-right border-l pl-6 border-slate-200">
+                    <span class="block text-[10px] text-slate-400 font-bold uppercase">Total Respostes</span>
+                    <span id="statRespostes" class="text-xl font-bold text-blue-600">0</span>
                 </div>
+                <button onclick="carregarDades()" id="btnRefresh" class="ml-4 bg-slate-100 hover:bg-slate-200 p-2.5 rounded-full transition-colors">
+                    <svg id="refreshIcon" xmlns="http://www.w3.org/2000/svg" class="h-5 w-5 text-slate-600" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 4v5h.582m15.356 2A8.001 8.001 0 004.582 9m0 0H9m11 11v-5h-.581m0 0a8.003 8.003 0 01-15.357-2m15.357 2H15" />
+                    </svg>
+                </button>
             </div>
         </div>
+    </nav>
 
-        <header class="text-center mb-10">
-            <h1 class="text-4xl md:text-5xl font-bold text-gray-800 flex items-center justify-center gap-4">
-                <span>🌟</span> La Veu dels Analistes
-            </h1>
-            <p class="text-gray-500 mt-3 text-lg">Visualització de reflexions en temps real</p>
+    <main class="max-w-full mx-auto p-4 md:p-8">
+        
+        <!-- Secció de Filtres -->
+        <div class="mb-10 text-center">
+            <h2 class="text-3xl font-extrabold text-slate-800 mb-2">✨ La Veu dels Analistes</h2>
+            <p class="text-slate-500 mb-6">Selecciona els centres que vols analitzar:</p>
             
-            <!-- Àrea de Filtres -->
-            <div id="filterContainer" class="mt-8 bg-white p-6 rounded-[2.5rem] shadow-sm border border-gray-100 hidden">
-                <p class="text-xs font-bold text-gray-400 uppercase tracking-[0.2em] mb-4">Centres actius (selecciona per mostrar)</p>
-                <div class="flex flex-wrap justify-center gap-3" id="schoolFilters">
-                    <!-- Els filtres es generen aquí -->
-                </div>
-                <div class="mt-6">
-                    <button onclick="carregarDades()" class="px-8 py-3 bg-blue-600 text-white rounded-full hover:bg-blue-700 transition-all shadow-lg hover:shadow-blue-200 flex items-center gap-3 mx-auto font-semibold">
-                        <span id="btnIcon">🔄</span>
-                        <span id="btnText">Actualitzar dades</span>
-                    </button>
+            <div id="filterWrapper" class="flex flex-wrap justify-center gap-2 max-w-4xl mx-auto bg-white p-6 rounded-3xl shadow-sm border border-slate-100">
+                <div class="flex items-center gap-2 text-slate-400 py-2 px-4 italic text-sm">
+                    Carregant centres...
                 </div>
             </div>
-        </header>
-
-        <!-- Estats de càrrega -->
-        <div id="loading" class="flex flex-col items-center justify-center py-20">
-            <div class="loader"></div>
-            <p class="mt-4 text-gray-500 animate-pulse">Connectant amb el full de càlcul...</p>
         </div>
 
-        <div id="noData" class="hidden text-center py-20 bg-white rounded-3xl border-2 border-dashed border-gray-200">
-            <p class="text-xl text-gray-400 font-semibold">No hi ha respostes per mostrar amb aquests filtres.</p>
+        <!-- Indicador de Càrrega -->
+        <div id="loading" class="hidden flex flex-col items-center justify-center py-20">
+            <div class="loader mb-4"></div>
+            <p class="text-slate-500 font-medium">Sincronitzant amb el núvol...</p>
         </div>
 
-        <!-- Graella de targetes -->
-        <div id="grid" class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-8"></div>
-    </div>
+        <!-- Contingut Principal -->
+        <div id="mainContent" class="space-y-8">
+            <!-- Les escoles apareixeran aquí -->
+        </div>
+
+        <!-- Missatge quan no hi ha dades -->
+        <div id="emptyState" class="hidden text-center py-24">
+            <div class="text-6xl mb-4">🔍</div>
+            <h3 class="text-xl font-bold text-slate-700">No hi ha dades per mostrar</h3>
+            <p class="text-slate-400">Selecciona almenys un centre o actualitza la pàgina.</p>
+        </div>
+
+    </main>
 
     <script>
-        const URL_SCRIPT = "https://script.google.com/macros/s/AKfycbyd8EMwdnW3MVat7v7zWbj5n0CHM5sl8Ket0HZcKdEVAqGysjMqH0POzgTA6NX2LHue3Q/exec";
+        const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyd8EMwdnW3MVat7v7zWbj5n0CHM5sl8Ket0HZcKdEVAqGysjMqH0POzgTA6NX2LHue3Q/exec";
+        
+        let dadesRaw = [];
+        let escolesActives = new Set();
 
-        let dadesGlobals = [];
-        let escolesVisibles = new Set();
+        // Noms de les preguntes (ajustar si cal)
+        const TITOLS_PREGUNTES = [
+            "Més destacat",
+            "Aprenentatges",
+            "Aplicació pràctica",
+            "Dificultats",
+            "Dubtes"
+        ];
 
-        // Funció millorada per trobar camps encara que canviïn de nom
-        function trobaValor(obj, clausPossibles) {
-            for (let clau of clausPossibles) {
-                if (obj[clau] !== undefined && obj[clau] !== null && obj[clau].toString().trim() !== "") {
-                    return obj[clau];
+        async function carregarDades() {
+            const btn = document.getElementById('refreshIcon');
+            const loading = document.getElementById('loading');
+            const main = document.getElementById('mainContent');
+            
+            btn.classList.add('animate-spin');
+            loading.classList.remove('hidden');
+            main.classList.add('opacity-40');
+
+            try {
+                const response = await fetch(`${SCRIPT_URL}?t=${Date.now()}`);
+                dadesRaw = await response.json();
+                
+                if (dadesRaw && dadesRaw.length > 0) {
+                    const totesEscoles = [...new Set(dadesRaw.map(item => normalizeValue(item, ['escola', 'centre', 'Centre', 'Escola'])))].filter(e => e !== "-").sort();
+                    
+                    // Inicialment les activem totes si és la primera càrrega
+                    if (escolesActives.size === 0) {
+                        totesEscoles.forEach(e => escolesActives.add(e));
+                    }
+
+                    actualitzarInterficie(totesEscoles);
+                } else {
+                    document.getElementById('emptyState').classList.remove('hidden');
                 }
-                // Prova en minúscules i sense espais
-                let clauNeta = clau.toLowerCase().replace(/\s+/g, '');
-                if (obj[clauNeta] !== undefined && obj[clauNeta] !== null && obj[clauNeta].toString().trim() !== "") {
-                    return obj[clauNeta];
-                }
+            } catch (e) {
+                console.error("Error carregant dades", e);
+            } finally {
+                btn.classList.remove('animate-spin');
+                loading.classList.add('hidden');
+                main.classList.remove('opacity-40');
+            }
+        }
+
+        function normalizeValue(obj, keys) {
+            for (let k of keys) {
+                if (obj[k] && obj[k].toString().trim() !== "") return obj[k].toString().trim();
+                // Prova clau en minúscules
+                let lowKey = k.toLowerCase();
+                if (obj[lowKey] && obj[lowKey].toString().trim() !== "") return obj[lowKey].toString().trim();
             }
             return "-";
         }
 
-        async function carregarDades() {
-            const grid = document.getElementById('grid');
-            const loading = document.getElementById('loading');
-            const noData = document.getElementById('noData');
-            const filterContainer = document.getElementById('filterContainer');
-            const btnText = document.getElementById('btnText');
+        function actualitzarInterficie(llistaEscoles) {
+            // Actualitzar Stats
+            document.getElementById('statEscoles').innerText = llistaEscoles.length;
+            document.getElementById('statRespostes').innerText = dadesRaw.length;
 
-            loading.classList.remove('hidden');
-            grid.innerHTML = '';
-            btnText.innerText = "Sincronitzant...";
-
-            try {
-                const response = await fetch(`${URL_SCRIPT}?t=${Date.now()}`);
-                dadesGlobals = await response.json();
-                
-                console.log("Dades rebudes:", dadesGlobals);
-
-                if (!dadesGlobals || dadesGlobals.length === 0) {
-                    loading.classList.add('hidden');
-                    noData.classList.remove('hidden');
-                    return;
-                }
-
-                // Identificar totes les escoles úniques
-                const llistaEscoles = [...new Set(dadesGlobals.map(d => trobaValor(d, ['escola', 'Escola', 'centre', 'Centre'])))].filter(e => e !== "-").sort();
-                
-                // Si és la primera vegada, les activem totes
-                if (escolesVisibles.size === 0) {
-                    llistaEscoles.forEach(e => escolesVisibles.add(e));
-                }
-
-                document.getElementById('counterEscoles').innerText = llistaEscoles.length;
-                document.getElementById('counterRespostes').innerText = dadesGlobals.length;
-
-                generarFiltres(llistaEscoles);
-                filterContainer.classList.remove('hidden');
-                loading.classList.add('hidden');
-                btnText.innerText = "Actualitzar dades";
-                
-                renderitzarMur();
-
-            } catch (error) {
-                console.error("Error de connexió:", error);
-                loading.classList.add('hidden');
-                noData.classList.remove('hidden');
-                btnText.innerText = "Error de càrrega";
-            }
-        }
-
-        function generarFiltres(escoles) {
-            const container = document.getElementById('schoolFilters');
-            container.innerHTML = '';
+            // Generar Filtres
+            const filterContainer = document.getElementById('filterWrapper');
+            filterContainer.innerHTML = '';
             
-            escoles.forEach(escola => {
-                const label = document.createElement('label');
-                label.className = 'filter-chip';
-                
-                const input = document.createElement('input');
-                input.type = 'checkbox';
-                input.checked = escolesVisibles.has(escola);
-                input.value = escola;
-                input.onchange = (e) => {
-                    if (e.target.checked) escolesVisibles.add(escola);
-                    else escolesVisibles.delete(escola);
-                    renderitzarMur();
+            // Botó "Tots"
+            const btnTots = document.createElement('div');
+            btnTots.className = `chip px-4 py-2 rounded-xl text-sm font-bold border ${escolesActives.size === llistaEscoles.length ? 'chip-active' : 'bg-slate-50 border-slate-200 text-slate-600'}`;
+            btnTots.innerText = "Tots els centres";
+            btnTots.onclick = () => {
+                if (escolesActives.size === llistaEscoles.length) escolesActives.clear();
+                else llistaEscoles.forEach(e => escolesActives.add(e));
+                actualitzarInterficie(llistaEscoles);
+            };
+            filterContainer.appendChild(btnTots);
+
+            llistaEscoles.forEach(escola => {
+                const chip = document.createElement('div');
+                const isActive = escolesActives.has(escola);
+                chip.className = `chip px-4 py-2 rounded-xl text-sm font-semibold border ${isActive ? 'chip-active' : 'bg-white border-slate-200 text-slate-500 hover:border-blue-300'}`;
+                chip.innerText = escola;
+                chip.onclick = () => {
+                    if (escolesActives.has(escola)) escolesActives.delete(escola);
+                    else escolesActives.add(escola);
+                    actualitzarInterficie(llistaEscoles);
                 };
-
-                const span = document.createElement('span');
-                span.innerText = escola;
-
-                label.appendChild(input);
-                label.appendChild(span);
-                container.appendChild(label);
+                filterContainer.appendChild(chip);
             });
+
+            renderitzarEscoles();
         }
 
-        function renderitzarMur() {
-            const grid = document.getElementById('grid');
-            const noData = document.getElementById('noData');
-            grid.innerHTML = '';
+        function renderitzarEscoles() {
+            const container = document.getElementById('mainContent');
+            const empty = document.getElementById('emptyState');
+            container.innerHTML = '';
 
-            const respostesFiltrades = dadesGlobals.filter(d => {
-                const escolaDoc = trobaValor(d, ['escola', 'Escola', 'centre', 'Centre']);
-                return escolesVisibles.has(escolaDoc);
-            }).reverse();
+            const escolesAFiltrar = Array.from(escolesActives).sort();
 
-            if (respostesFiltrades.length === 0) {
-                noData.classList.remove('hidden');
+            if (escolesAFiltrar.length === 0) {
+                empty.classList.remove('hidden');
                 return;
             }
+            empty.classList.add('hidden');
 
-            noData.classList.add('hidden');
-
-            respostesFiltrades.forEach(r => {
-                const escola = trobaValor(r, ['escola', 'Escola', 'centre', 'Centre']);
-                const dataRaw = trobaValor(r, ['marcatemporal', 'timestamp', 'data', 'Data']);
+            escolesAFiltrar.forEach(escolaNom => {
+                const respostesEscola = dadesRaw.filter(d => normalizeValue(d, ['escola', 'centre', 'Centre', 'Escola']) === escolaNom);
                 
-                // Mapeig de preguntes segons el teu Apps Script
-                const p1 = trobaValor(r, ['pregunta1', 'p1', 'Pregunta 1']);
-                const p2 = trobaValor(r, ['pregunta2', 'p2', 'Pregunta 2']);
-                const p3 = trobaValor(r, ['pregunta3', 'p3', 'Pregunta 3']);
-                const p4 = trobaValor(r, ['pregunta4', 'p4', 'Pregunta 4']);
-                const p5 = trobaValor(r, ['pregunta5', 'p5', 'Pregunta 5']);
-
-                const targeta = document.createElement('div');
-                targeta.className = "card p-8 shadow-sm border-t-[6px] border-blue-500 flex flex-col gap-5";
-                targeta.innerHTML = `
-                    <div class="flex justify-between items-center border-b border-gray-50 pb-4">
-                        <span class="bg-blue-100 text-blue-700 px-4 py-1.5 rounded-full text-xs font-bold uppercase tracking-wider">${escola}</span>
-                        <span class="text-gray-300 text-[10px] font-bold">${dataRaw !== "-" ? new Date(dataRaw).toLocaleDateString('ca-ES') : ''}</span>
+                const section = document.createElement('div');
+                section.className = "school-section bg-white rounded-[2rem] shadow-sm border border-slate-200 overflow-hidden";
+                
+                section.innerHTML = `
+                    <div class="bg-slate-50 px-8 py-6 border-b border-slate-100 flex justify-between items-center cursor-pointer hover:bg-slate-100/50 transition-colors" onclick="toggleAccordion('${escolaNom}')">
+                        <div class="flex items-center gap-4">
+                            <div class="w-10 h-10 rounded-full bg-blue-600 flex items-center justify-center text-white font-bold text-lg">
+                                ${escolaNom.charAt(0)}
+                            </div>
+                            <div>
+                                <h3 class="text-xl font-bold text-slate-800">${escolaNom}</h3>
+                                <p class="text-xs text-slate-400 font-bold uppercase tracking-wider">${respostesEscola.length} reflexions registrades</p>
+                            </div>
+                        </div>
+                        <div id="icon-${escolaNom.replace(/\s+/g, '')}" class="transform transition-transform rotate-180">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-slate-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7" />
+                            </svg>
+                        </div>
                     </div>
-                    
-                    <div class="space-y-5">
-                        <div class="bg-blue-50/30 p-4 rounded-2xl">
-                            <p class="text-[10px] font-black text-blue-400 uppercase tracking-[0.15em] mb-2 flex items-center gap-2">
-                                <span class="text-base">✨</span> Més destacat
-                            </p>
-                            <p class="text-gray-800 text-sm italic font-medium leading-relaxed">"${p1}"</p>
-                        </div>
-
-                        <div>
-                            <p class="text-[10px] font-black text-gray-400 uppercase tracking-[0.15em] mb-2 flex items-center gap-2">
-                                <span class="text-base">💡</span> Aprenentatges
-                            </p>
-                            <p class="text-gray-600 text-xs leading-relaxed pl-1">${p2}</p>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4 pt-2">
-                            <div class="p-3 rounded-xl bg-orange-50/50">
-                                <p class="text-[9px] font-black text-orange-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                                    <span>🚧</span> Dificultat
-                                </p>
-                                <p class="text-gray-600 text-[11px] leading-tight line-clamp-3">${p4}</p>
-                            </div>
-                            <div class="p-3 rounded-xl bg-purple-50/50">
-                                <p class="text-[9px] font-black text-purple-400 uppercase tracking-widest mb-1 flex items-center gap-1">
-                                    <span>❓</span> Dubte
-                                </p>
-                                <p class="text-gray-600 text-[11px] leading-tight line-clamp-3">${p5}</p>
-                            </div>
+                    <div id="content-${escolaNom.replace(/\s+/g, '')}" class="p-4 md:p-8">
+                        <div class="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-6">
+                            ${generarColumnes(respostesEscola)}
                         </div>
                     </div>
                 `;
-                grid.appendChild(targeta);
+                container.appendChild(section);
             });
         }
 
-        // Carrega inicial
+        function generarColumnes(respostes) {
+            let html = '';
+            
+            // Per a cada una de les 5 preguntes tipus
+            for (let i = 1; i <= 5; i++) {
+                const clausPregunta = [`pregunta${i}`, `p${i}`, `Pregunta ${i}`];
+                
+                html += `
+                    <div class="flex flex-col gap-4">
+                        <h4 class="text-[11px] font-black text-slate-400 uppercase tracking-[0.2em] mb-2 px-2 flex items-center gap-2">
+                            <span class="w-1.5 h-1.5 rounded-full bg-blue-500"></span>
+                            ${TITOLS_PREGUNTES[i-1]}
+                        </h4>
+                        <div class="space-y-3 max-h-[500px] overflow-y-auto pr-2 custom-scroll">
+                            ${respostes.map(r => {
+                                const text = normalizeValue(r, clausPregunta);
+                                if (text === "-") return "";
+                                return `
+                                    <div class="answer-pill p-4 rounded-2xl text-xs text-slate-600 leading-relaxed shadow-sm border border-slate-100 hover:border-blue-200 transition-colors">
+                                        ${text}
+                                    </div>
+                                `;
+                            }).join('')}
+                        </div>
+                    </div>
+                `;
+            }
+            return html;
+        }
+
+        function toggleAccordion(id) {
+            const safeId = id.replace(/\s+/g, '');
+            const content = document.getElementById(`content-${safeId}`);
+            const icon = document.getElementById(`icon-${safeId}`);
+            
+            if (content.classList.contains('hidden')) {
+                content.classList.remove('hidden');
+                icon.classList.add('rotate-180');
+            } else {
+                content.classList.add('hidden');
+                icon.classList.remove('rotate-180');
+            }
+        }
+
+        // Càrrega inicial
         window.onload = carregarDades;
     </script>
 </body>
