@@ -3,10 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mural de les Idees - Estètica Polida</title>
+    <title>Mural de les Idees - Correcció de Resums</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;800;900&family=Patrick+Hand&display=swap" rel="stylesheet">
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;600;900&family=Patrick+Hand&display=swap" rel="stylesheet">
     <style>
         :root {
             --bg-mural: #f8fafc;
@@ -18,104 +18,108 @@
         }
         body { font-family: 'Outfit', sans-serif; background-color: var(--bg-mural); color: #1e293b; }
         .handwritten { font-family: 'Patrick Hand', cursive; }
-        
-        /* Post-its del Mural */
-        .post-it { padding: 1rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); min-height: 80px; display: flex; align-items: center; justify-content: center; text-align: center; border: 1px solid rgba(0,0,0,0.03); }
+        .post-it { padding: 1rem; border-radius: 12px; box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05); min-height: 80px; display: flex; align-items: center; justify-content: center; text-align: center; border: 1px solid rgba(0,0,0,0.03); margin-bottom: 1rem; }
         .col-0 { background-color: var(--color-agradat); }
         .col-1 { background-color: var(--color-apres); }
         .col-2 { background-color: var(--color-interes); }
         .col-3 { background-color: var(--color-dificultat); }
         .col-4 { background-color: var(--color-dubtes); }
         
-        /* Estils del Resum IA */
-        .ia-section-title { font-weight: 800; font-size: 1.1rem; display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem; color: #0f172a; }
-        .ia-summary-line { font-weight: 400; color: #64748b; font-size: 0.95rem; margin-bottom: 0.75rem; display: block; padding-left: 1.8rem; }
-        
+        /* Estils Informe IA */
+        .ia-section-title { font-weight: 900; font-size: 1.2rem; display: flex; align-items: center; gap: 0.5rem; margin-top: 1.5rem; color: #0f172a; border-bottom: 2px solid #fbce04; padding-bottom: 4px; display: inline-flex; }
+        .ia-summary-line { font-weight: 500; color: #475569; font-size: 1rem; margin-top: 0.5rem; display: block; line-height: 1.5; }
         .ia-quote-yellow { 
             background-color: #fefce8; 
             border-left: 4px solid #facc15; 
             padding: 0.75rem 1rem; 
-            border-radius: 0 8px 8px 0; 
+            border-radius: 4px 12px 12px 4px; 
             font-family: 'Patrick Hand', cursive; 
             font-size: 1.15rem; 
             color: #854d0e; 
-            margin: 0.5rem 0 0.5rem 1.8rem;
+            margin: 0.5rem 0 1.5rem 0;
             line-height: 1.3;
         }
 
         .loader { border-top-color: #fbbf24; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        
-        @media print {
-            .no-print { display: none; }
-        }
     </style>
 </head>
 <body class="min-h-screen pb-20">
 
     <header class="max-w-7xl mx-auto pt-12 pb-8 text-center px-4">
-        <h1 class="text-5xl font-black text-slate-900 mb-2 tracking-tight">Mural de les Idees</h1>
-        <p class="text-slate-500 font-semibold uppercase tracking-widest text-xs">Veu dels Alumnes · </p>
-        <div id="filterContainer" class="flex flex-wrap justify-center gap-2 mt-8"></div>
+        <h1 class="text-6xl font-black text-slate-900 mb-3 tracking-tighter">Mural de les Idees</h1>
+        <p class="text-slate-500 font-bold uppercase tracking-[0.3em] text-[10px]">Gestió de Resums Intel·ligents</p>
+        <div class="mt-6">
+            <button onclick="configurarAPIKey()" class="text-[10px] bg-slate-200 hover:bg-slate-300 text-slate-600 px-3 py-1 rounded-full font-bold uppercase tracking-widest transition-colors">Configurar API Key</button>
+        </div>
+        <div id="filterContainer" class="flex flex-wrap justify-center gap-3 mt-8"></div>
     </header>
 
-    <main class="max-w-[1400px] mx-auto px-6">
-        <div id="loading" class="hidden flex flex-col items-center justify-center py-20">
-            <div class="loader rounded-full border-4 h-10 w-10 mb-4 border-slate-200"></div>
-            <p class="handwritten text-xl text-slate-400">Recollint els post-its...</p>
+    <main class="max-w-[1440px] mx-auto px-6">
+        <div id="loading" class="flex flex-col items-center justify-center py-32">
+            <div class="loader rounded-full border-4 h-12 w-12 mb-6 border-slate-200"></div>
+            <p class="handwritten text-2xl text-slate-400">Carregant dades del núvol...</p>
         </div>
-        <div id="muralGrid" class="space-y-12"></div>
+        <div id="muralGrid" class="space-y-16"></div>
     </main>
 
-    <!-- Modal Resum -->
-    <div id="reportModal" class="hidden fixed inset-0 z-50 bg-slate-900/70 backdrop-blur-md flex items-center justify-center p-4">
-        <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-[2.5rem] shadow-2xl overflow-hidden flex flex-col border border-white/20">
-            <div class="p-8 border-b flex justify-between items-center bg-yellow-50/50">
-                <div>
-                    <h3 class="font-black text-2xl text-slate-900">Resum de l'Experiència</h3>
-                    <p class="text-xs font-bold text-yellow-600 uppercase tracking-widest mt-1">Sintetitzat per Intel·ligència Artificial</p>
-                </div>
-                <button onclick="tancarModal()" class="text-slate-400 hover:text-red-500 p-2 text-3xl leading-none transition-colors">×</button>
+    <!-- Modal de Resum -->
+    <div id="reportModal" class="hidden fixed inset-0 z-50 bg-slate-900/80 backdrop-blur-sm flex items-center justify-center p-4">
+        <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-[2rem] shadow-2xl overflow-hidden flex flex-col">
+            <div class="p-6 border-b bg-yellow-50 flex justify-between items-center">
+                <h3 id="modalTitle" class="font-black text-2xl text-slate-900">Resum Escola</h3>
+                <button onclick="tancarModal()" class="text-slate-400 hover:text-slate-900 text-3xl">&times;</button>
             </div>
-            <div id="reportContent" class="p-10 overflow-y-auto bg-white flex-1"></div>
-            <div class="p-6 bg-slate-50 border-t flex justify-center gap-4">
-                <button id="btnDownloadPDF" onclick="descarregarPDF()" class="hidden bg-slate-900 text-white px-10 py-4 rounded-2xl font-bold hover:bg-slate-800 transition-all hover:scale-105 active:scale-95 shadow-lg">Descarregar PDF</button>
-                <button onclick="tancarModal()" class="px-6 py-4 text-slate-400 font-bold hover:text-slate-600 transition-colors">Tancar</button>
+            <div id="reportContent" class="p-8 overflow-y-auto bg-white flex-1"></div>
+            <div class="p-6 bg-slate-50 border-t flex justify-end gap-4">
+                <button onclick="tancarModal()" class="px-6 py-3 text-slate-500 font-bold">Tancar</button>
+                <button id="btnDownloadPDF" onclick="descarregarPDF()" class="hidden bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800 transition-all flex items-center gap-2">
+                    Descarregar PDF
+                </button>
             </div>
         </div>
     </div>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyd8EMwdnW3MVat7v7zWbj5n0CHM5sl8Ket0HZcKdEVAqGysjMqH0POzgTA6NX2LHue3Q/exec";
-        const apiKey = ""; // API Key gestionada per l'entorn
         let dadesTotals = [];
         let escolesActives = new Set();
         let clauEscola = "";
 
         const SECCIONS = [
-            { títol: "M'ha agradat...", icona: "❤️" },
-            { títol: "He après...", icona: "🎓" },
-            { títol: "M'ha interessat...", icona: "🌟" },
+            { títol: "M'ha agradat", icona: "❤️" },
+            { títol: "He après", icona: "🎓" },
+            { títol: "M'ha interessat", icona: "🌟" },
             { títol: "Dificultats", icona: "🧩" },
             { títol: "Dubtes", icona: "🤔" }
         ];
 
+        function configurarAPIKey() {
+            const key = prompt("Introdueix la teva Google Gemini API Key:", localStorage.getItem('gemini_api_key') || "");
+            if (key) {
+                localStorage.setItem('gemini_api_key', key);
+                location.reload();
+            }
+        }
+
         async function carregarDades() {
-            const loading = document.getElementById('loading');
-            loading.classList.remove('hidden');
             try {
-                const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
+                const res = await fetch(SCRIPT_URL);
                 dadesTotals = await res.json();
                 if (dadesTotals.length > 0) {
                     const claus = Object.keys(dadesTotals[0]);
                     clauEscola = claus.find(k => k.toLowerCase().includes('centre') || k.toLowerCase().includes('escola')) || claus[1];
                     const escolesUniques = [...new Set(dadesTotals.map(d => d[clauEscola]).filter(Boolean))].sort();
-                    if (escolesActives.size === 0) escolesUniques.forEach(e => escolesActives.add(e));
+                    escolesUniques.forEach(e => escolesActives.add(e));
                     renderFiltres(escolesUniques);
                     renderMural();
                 }
-            } catch (e) { console.error(e); } 
-            finally { loading.classList.add('hidden'); }
+            } catch (e) { 
+                console.error(e);
+                document.getElementById('loading').innerHTML = "<p class='text-red-500'>Error connectant amb Google Sheets. Verifica el Script URL.</p>";
+            } finally {
+                document.getElementById('loading').classList.add('hidden');
+            }
         }
 
         function renderFiltres(escoles) {
@@ -124,7 +128,7 @@
             escoles.forEach(escola => {
                 const actiu = escolesActives.has(escola);
                 const btn = document.createElement('button');
-                btn.className = `px-5 py-2 rounded-full text-sm font-bold transition-all ${actiu ? 'bg-slate-900 text-white shadow-lg scale-105' : 'bg-white text-slate-400 border border-slate-200 hover:border-slate-300'}`;
+                btn.className = `px-5 py-2 rounded-full text-xs font-black transition-all ${actiu ? 'bg-slate-900 text-white shadow-lg' : 'bg-white text-slate-400 border border-slate-200'}`;
                 btn.innerText = escola;
                 btn.onclick = () => {
                     if (escolesActives.has(escola)) { if (escolesActives.size > 1) escolesActives.delete(escola); }
@@ -139,30 +143,28 @@
             const grid = document.getElementById('muralGrid');
             grid.innerHTML = '';
             const claus = Object.keys(dadesTotals[0]);
+            
             Array.from(escolesActives).forEach(escolaNom => {
                 const respostes = dadesTotals.filter(d => d[clauEscola] === escolaNom);
                 const section = document.createElement('section');
-                section.className = "bg-white p-10 rounded-[3rem] shadow-sm border border-slate-100";
+                section.className = "bg-white p-8 md:p-12 rounded-[3rem] shadow-sm border border-slate-100";
                 section.innerHTML = `
-                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-6">
-                        <div>
-                            <h2 class="font-black text-4xl text-slate-900 tracking-tight">${escolaNom}</h2>
-                            <p class="text-slate-400 font-medium mt-1">${respostes.length} respostes recollides</p>
-                        </div>
-                        <button onclick="generarResumIA('${escolaNom.replace(/'/g, "\\'")}')" class="bg-yellow-400 text-yellow-900 px-8 py-3 rounded-2xl font-black text-sm shadow-md hover:bg-yellow-300 transition-all hover:scale-105 active:scale-95 flex items-center gap-2">
-                            <span>✨</span> Generar Resum
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-10 gap-4">
+                        <h2 class="font-black text-4xl text-slate-900 tracking-tight">${escolaNom}</h2>
+                        <button onclick="generarResumIA('${escolaNom.replace(/'/g, "\\'")}')" class="bg-yellow-400 text-yellow-950 px-6 py-3 rounded-xl font-black text-sm shadow hover:bg-yellow-300 transition-all flex items-center gap-2">
+                            <span>✨</span> Generar Resum IA
                         </button>
                     </div>
                     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-6">
                         ${SECCIONS.map((sec, i) => {
                             const textos = respostes.map(r => r[claus[i + 2]]).filter(t => t && t.toString().trim().length > 1);
                             return `
-                                <div class="flex flex-col">
-                                    <h4 class="text-xs uppercase font-black text-slate-300 tracking-widest mb-4 flex items-center gap-2">
-                                        <span class="text-lg grayscale-[0.5]">${sec.icona}</span> ${sec.títol}
+                                <div>
+                                    <h4 class="text-[10px] uppercase font-black text-slate-300 tracking-widest mb-4 flex items-center gap-2">
+                                        ${sec.icona} ${sec.títol}
                                     </h4>
-                                    <div class="space-y-4">
-                                        ${textos.length > 0 ? textos.map(txt => `<div class="post-it col-${i}"><p class="handwritten text-sm text-slate-700 leading-tight">${txt}</p></div>`).join('') : '<p class="text-[10px] text-slate-200 italic px-2">Encara no hi ha notes</p>'}
+                                    <div class="space-y-3">
+                                        ${textos.length > 0 ? textos.map(txt => `<div class="post-it col-${i}"><p class="handwritten text-sm text-slate-700 leading-tight">${txt}</p></div>`).join('') : '<p class="text-[9px] text-slate-200 italic">Cap idea encara</p>'}
                                     </div>
                                 </div>
                             `;
@@ -174,77 +176,57 @@
         }
 
         async function generarResumIA(nomEscola) {
+            const userKey = localStorage.getItem('gemini_api_key');
+            if (!userKey) {
+                configurarAPIKey();
+                return;
+            }
+
             const content = document.getElementById('reportContent');
             const btnPdf = document.getElementById('btnDownloadPDF');
+            document.getElementById('modalTitle').innerText = nomEscola;
             document.getElementById('reportModal').classList.remove('hidden');
             btnPdf.classList.add('hidden');
-            content.innerHTML = `
-                <div class="text-center py-20 flex flex-col items-center">
-                    <div class="loader inline-block rounded-full border-4 h-12 w-12 mb-4 border-yellow-200"></div>
-                    <p class="handwritten text-2xl text-slate-400 animate-pulse">Llegint els post-its de l'alumnat...</p>
-                </div>`;
+            
+            content.innerHTML = `<div class="text-center py-20"><div class="loader inline-block rounded-full border-4 h-10 w-10 mb-4 border-yellow-200"></div><p class="handwritten text-xl text-slate-400">La IA està analitzant el mural...</p></div>`;
 
             const respostes = dadesTotals.filter(d => d[clauEscola] === nomEscola);
             const claus = Object.keys(respostes[0]);
-            
-            const dadesPerSeccio = SECCIONS.map((s, i) => {
+            const context = SECCIONS.map((s, i) => {
                 const r = respostes.map(res => res[claus[i+2]]).filter(t => t && t.length > 1);
-                // Si n'hi ha moltes, enviem només una mostra a la IA per no saturar el prompt, però li diem que hi ha més.
-                const mostra = r.slice(0, 40).join(' | ');
-                return `### SECCIÓ ${s.icona} ${s.títol.toUpperCase()}:\n${mostra}`;
-            }).join('\n\n');
+                return `${s.títol}: ${r.join(' | ')}`;
+            }).join('\n');
 
-            const systemPrompt = `Ets un sintetitzador d'experiències educatives per a escoles. El teu objectiu és crear un document bonic i sincer que resumeixi el que els alumnes han sentit. No utilitzis paraules complexes ni un to burocràtic. Sigues fresc i fidel a les veus dels nens i nenes.`;
-
-            const userPrompt = `
-                Resum de l'escola: ${nomEscola}.
-                Aquests són els post-its del mural agrupats per columnes:
-                ${dadesPerSeccio}
-
-                INSTRUCCIONS DE FORMAT (Segueix-les al peu de la lletra):
-                1. Per a CADA UNA de les 5 seccions del mural, genera:
-                   - El títol de la secció en negreta amb la seva icona original: <div class="ia-section-title">ICONA **NOM SECCIÓ**</div>
-                   - Una sola línia que resumeixi el sentiment general d'aquesta columna: <span class="ia-summary-line">Frase resum de 10-15 paraules</span>
-                   - Tria NOMÉS les 2 millors cites textuals dels alumnes (les més autèntiques o sorprenents) i posa-les així: <div class="ia-quote-yellow">"Cita literal de l'alumne"</div>
-                
-                2. No citis més de 2 frases per apartat encara que n'hi hagi 100.
-                3. Al final del tot, afegeix un breu paràgraf (3 línies) de reflexió final positiva.
-                
-                Usa només HTML bàsic (div, span, b). No usis marcadors de markdown tipus ### o ** fora de les etiquetes html que t'he passat.
-            `;
+            const prompt = `Ets un analista de dades educatives. Genera un resum HTML per l'escola ${nomEscola}.
+            Dades: ${context}
+            FORMAT OBLIGATORI (sense markdown, només HTML pur):
+            Per cada secció genera:
+            <div class="ia-section-title">Icona Títol</div>
+            <span class="ia-summary-line">Resum de la tendència principal.</span>
+            <div class="ia-quote-yellow">"Una cita textual rellevant dels alumnes"</div>
+            Acaba amb un breu paràgraf de conclusió.`;
 
             try {
-                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash-preview-09-2025:generateContent?key=${apiKey}`, {
+                // Utilitzem el model v1.5-flash que és el més comú
+                const response = await fetch(`https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash:generateContent?key=${userKey}`, {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({
-                        contents: [{ parts: [{ text: userPrompt }] }],
-                        systemInstruction: { parts: [{ text: systemPrompt }] }
-                    })
+                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
                 });
 
                 const result = await response.json();
-                let htmlIA = result.candidates?.[0]?.content?.parts?.[0]?.text || "";
                 
-                // Neteja per si la IA inclou blocs de codi
-                htmlIA = htmlIA.replace(/```html|```/g, '').trim();
+                if (result.error) throw new Error(result.error.message);
 
-                content.innerHTML = `
-                    <div id="pdfArea" class="prose max-w-none">
-                        <div class="text-center mb-10">
-                            <h2 class="text-3xl font-black text-slate-900">${nomEscola}</h2>
-                            <p class="text-[10px] text-slate-400 font-bold uppercase tracking-[0.2em] mt-2">Memòria d'Aprenentatge · Mural de les Idees</p>
-                            <div class="h-1 w-20 bg-yellow-400 mx-auto mt-4 rounded-full"></div>
-                        </div>
-                        <div class="space-y-4">
-                            ${htmlIA}
-                        </div>
-                    </div>
-                `;
+                const rawText = result.candidates[0].content.parts[0].text;
+                content.innerHTML = `<div id="pdfArea">${rawText.replace(/```html|```/g, '')}</div>`;
                 btnPdf.classList.remove('hidden');
 
             } catch (error) {
-                content.innerHTML = `<div class="p-8 bg-red-50 text-red-700 rounded-3xl text-center font-bold">Vaja! S'ha produït un error generant el resum. Torna-ho a intentar en uns segons.</div>`;
+                content.innerHTML = `<div class="p-6 bg-red-50 text-red-600 rounded-2xl text-sm">
+                    <strong>Error de l'API:</strong> ${error.message}<br><br>
+                    <button onclick="configurarAPIKey()" class="underline font-bold">Clica aquí per revisar la teva API Key</button>
+                </div>`;
             }
         }
 
@@ -252,19 +234,15 @@
         
         function descarregarPDF() {
             const element = document.getElementById('pdfArea');
-            const titol = element.querySelector('h2').innerText;
-            const opt = {
+            const titol = document.getElementById('modalTitle').innerText;
+            html2pdf().from(element).set({
                 margin: 20,
-                filename: `Mural_Resum_${titol}.pdf`,
-                image: { type: 'jpeg', quality: 1 },
-                html2canvas: { scale: 3, useCORS: true, letterRendering: true },
+                filename: `Resum_${titol}.pdf`,
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            };
-            html2pdf().set(opt).from(element).save();
+            }).save();
         }
 
         window.onload = carregarDades;
     </script>
 </body>
 </html>
-
