@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Mural de les Idees - Fix API</title>
+    <title>Mural de les Idees - Solució API</title>
     <script src="https://cdn.tailwindcss.com"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@400;700;900&family=Patrick+Hand&display=swap" rel="stylesheet">
@@ -26,43 +26,43 @@
         .col-4 { background-color: var(--color-dubtes); }
         .loader { border-top-color: #fbbf24; animation: spin 1s linear infinite; }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .ia-quote { font-family: 'Patrick Hand', cursive; font-size: 1.1rem; color: #475569; border-left: 4px solid #fde047; padding: 0.5rem 1rem; margin: 1rem 0; background: #fefce8; }
+        .ia-quote { font-family: 'Patrick Hand', cursive; font-size: 1.1rem; color: #475569; border-left: 4px solid #fde047; padding: 0.5rem 1rem; margin: 1rem 0; background: #fefce8; border-radius: 0 8px 8px 0; }
     </style>
 </head>
 <body class="min-h-screen pb-20">
 
     <div class="fixed top-4 right-4 z-50 flex gap-2">
-        <button onclick="carregarDades()" class="bg-slate-800 text-white p-3 rounded-full shadow-lg hover:scale-105 transition-transform">
+        <button onclick="carregarDades()" class="bg-slate-800 text-white p-3 rounded-full shadow-lg hover:scale-105 transition-transform" title="Refrescar dades">
             <svg xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"/><path d="M21 3v5h-5"/><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"/><path d="M3 21v-5h5"/></svg>
         </button>
-        <button onclick="obrirConfiguracio()" class="bg-white border border-slate-200 text-slate-400 px-3 py-1 rounded-lg text-[10px] font-bold uppercase">Configurar API</button>
+        <button onclick="obrirConfiguracio()" class="bg-white border border-slate-200 text-slate-500 px-3 py-1 rounded-lg text-[10px] font-bold uppercase hover:bg-slate-50">Configurar API</button>
     </div>
 
     <header class="max-w-7xl mx-auto pt-12 pb-8 text-center px-4">
         <h1 class="text-5xl font-black text-slate-800 mb-2">Mural de les Idees</h1>
-        <p class="text-slate-400 font-medium uppercase tracking-widest text-xs">Escoles PCMAT</p>
+        <p class="text-slate-400 font-medium uppercase tracking-widest text-xs">Escoles de Sant Cugat</p>
         <div id="filterContainer" class="flex flex-wrap justify-center gap-2 mt-8"></div>
     </header>
 
     <main class="max-w-[1400px] mx-auto px-6">
         <div id="loading" class="hidden flex flex-col items-center justify-center py-20">
             <div class="loader rounded-full border-4 h-10 w-10 mb-4"></div>
-            <p class="handwritten text-xl text-slate-400">Actualitzant mural...</p>
+            <p class="handwritten text-xl text-slate-400">Llegint el full de càlcul...</p>
         </div>
         <div id="muralGrid" class="space-y-16"></div>
     </main>
 
     <!-- Modal Resum IA -->
-    <div id="reportModal" class="hidden fixed inset-0 z-50 bg-slate-900/50 backdrop-blur-sm flex items-center justify-center p-4">
+    <div id="reportModal" class="hidden fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm flex items-center justify-center p-4">
         <div class="bg-white w-full max-w-2xl max-h-[90vh] rounded-3xl shadow-2xl overflow-hidden flex flex-col">
             <div class="p-6 border-b flex justify-between items-center bg-yellow-50">
                 <h3 class="font-bold text-xl text-slate-800">✨ Foto de les veus</h3>
-                <button onclick="tancarModal()" class="text-slate-400 hover:text-red-500">✕</button>
+                <button onclick="tancarModal()" class="text-slate-400 hover:text-red-500 p-2">✕</button>
             </div>
             <div id="reportContent" class="p-8 overflow-y-auto bg-white flex-1"></div>
             <div class="p-4 bg-slate-50 border-t flex justify-center gap-4">
-                <button id="btnDownloadPDF" onclick="descarregarPDF()" class="hidden bg-slate-900 text-white px-8 py-3 rounded-xl font-bold">Descarregar PDF</button>
-                <button onclick="tancarModal()" class="px-6 py-3 text-slate-400 font-bold">Tancar</button>
+                <button id="btnDownloadPDF" onclick="descarregarPDF()" class="hidden bg-slate-900 text-white px-8 py-3 rounded-xl font-bold hover:bg-slate-800 transition-colors">Descarregar PDF</button>
+                <button onclick="tancarModal()" class="px-6 py-3 text-slate-400 font-bold hover:text-slate-600">Tancar</button>
             </div>
         </div>
     </div>
@@ -82,7 +82,8 @@
         ];
 
         async function carregarDades() {
-            document.getElementById('loading').classList.remove('hidden');
+            const loading = document.getElementById('loading');
+            loading.classList.remove('hidden');
             try {
                 const res = await fetch(SCRIPT_URL + "?t=" + Date.now());
                 dadesTotals = await res.json();
@@ -94,8 +95,11 @@
                     renderFiltres(escolesUniques);
                     renderMural();
                 }
-            } catch (e) { console.error(e); }
-            finally { document.getElementById('loading').classList.add('hidden'); }
+            } catch (e) { 
+                console.error(e); 
+            } finally { 
+                loading.classList.add('hidden'); 
+            }
         }
 
         function renderFiltres(escoles) {
@@ -104,7 +108,7 @@
             escoles.forEach(escola => {
                 const actiu = escolesActives.has(escola);
                 const btn = document.createElement('button');
-                btn.className = `px-4 py-1.5 rounded-full text-xs font-bold transition-all ${actiu ? 'bg-yellow-400 text-yellow-900 shadow-md' : 'bg-white text-slate-400 border border-slate-200'}`;
+                btn.className = `px-4 py-1.5 rounded-full text-xs font-bold transition-all ${actiu ? 'bg-yellow-400 text-yellow-900 shadow-md' : 'bg-white text-slate-400 border border-slate-200 hover:border-slate-300'}`;
                 btn.innerText = escola;
                 btn.onclick = () => {
                     if (escolesActives.has(escola)) { if (escolesActives.size > 1) escolesActives.delete(escola); }
@@ -124,7 +128,7 @@
                 const section = document.createElement('section');
                 section.className = "bg-white p-8 rounded-[2rem] shadow-sm border border-slate-100";
                 section.innerHTML = `
-                    <div class="flex justify-between items-center mb-8">
+                    <div class="flex flex-col md:flex-row justify-between items-start md:items-center mb-8 gap-4">
                         <h2 class="font-black text-3xl text-slate-800">${escolaNom}</h2>
                         <button onclick="ferResumIA('${escolaNom.replace(/'/g, "\\'")}')" class="bg-yellow-400 text-yellow-900 px-6 py-2 rounded-xl font-bold text-sm shadow hover:bg-yellow-300 transition-colors">✨ Generar Resum</button>
                     </div>
@@ -133,8 +137,8 @@
                             const textos = respostes.map(r => r[claus[i + 2]]).filter(t => t && t.toString().trim().length > 1);
                             return `
                                 <div class="space-y-3">
-                                    <h4 class="text-[10px] uppercase font-bold text-slate-300 tracking-tighter">${sec.icona} ${sec.títol}</h4>
-                                    ${textos.map(txt => `<div class="post-it col-${i}"><p class="handwritten text-sm text-slate-700 leading-tight">${txt}</p></div>`).join('')}
+                                    <h4 class="text-[10px] uppercase font-bold text-slate-300 tracking-tighter flex items-center gap-1"><span>${sec.icona}</span> ${sec.títol}</h4>
+                                    ${textos.length > 0 ? textos.map(txt => `<div class="post-it col-${i}"><p class="handwritten text-sm text-slate-700 leading-tight">${txt}</p></div>`).join('') : '<p class="text-[10px] text-slate-200 italic">Sense respostes</p>'}
                                 </div>
                             `;
                         }).join('')}
@@ -146,8 +150,11 @@
 
         function obrirConfiguracio() {
             const actual = localStorage.getItem('gemini_api_key') || "";
-            const nova = prompt("Configura la teva API Key:", actual);
-            if (nova !== null) localStorage.setItem('gemini_api_key', nova.trim());
+            const nova = prompt("Enganxa la teva clau d'API de Google AI Studio:", actual);
+            if (nova !== null) {
+                localStorage.setItem('gemini_api_key', nova.trim());
+                location.reload();
+            }
         }
 
         async function ferResumIA(nomEscola) {
@@ -158,62 +165,81 @@
             const btnPdf = document.getElementById('btnDownloadPDF');
             document.getElementById('reportModal').classList.remove('hidden');
             btnPdf.classList.add('hidden');
-            content.innerHTML = `<div class="text-center py-10"><div class="loader inline-block rounded-full border-4 h-8 w-8 mb-2"></div><p class="handwritten text-lg text-slate-500">Connectant amb l'API estable de Google...</p></div>`;
-
-            // CONFIGURACIÓ DE L'API ESTABLE (v1)
-            const MODEL_ESTABLE = "gemini-1.5-flash"; 
-            const URL_API = `https://generativelanguage.googleapis.com/v1/models/${MODEL_ESTABLE}:generateContent?key=${apiKey}`;
+            content.innerHTML = `<div class="text-center py-10"><div class="loader inline-block rounded-full border-4 h-8 w-8 mb-2"></div><p class="handwritten text-lg text-slate-500">Provant diferents rutes de l'API de Google...</p></div>`;
 
             const respostes = dadesTotals.filter(d => d[clauEscola] === nomEscola);
             const claus = Object.keys(respostes[0]);
             const dadesText = respostes.map(r => 
-                `❤️:${r[claus[2]]} | 🎓:${r[claus[3]]} | 🌟:${r[claus[4]]} | 🧩:${r[claus[5]]} | 🤔:${r[claus[6]]}`
+                `Agradat:${r[claus[2]]} | Après:${r[claus[3]]} | Interès:${r[claus[4]]} | Dificultat:${r[claus[5]]} | Dubte:${r[claus[6]]}`
             ).join('\n');
 
-            const prompt = `Analitza les dades de l'escola ${nomEscola}. Redacta un resum motivador de 4-5 paràgrafs sobre la seva experiència. 
-            Identifica punts forts i reptes comuns. Inclou 2 cites textuals dins de <div class="ia-quote">"frase"</div>.
-            Respon NOMÉS amb el contingut en català formatat per HTML (sense markdown ni blocs de codi).
+            const prompt = `Ets un expert en educació. Analitza les opinions de l'escola ${nomEscola}. 
+            Fes un resum de 4 paràgrafs ben estructurats sobre la seva experiència d'aprenentatge.
+            Destaca l'entusiasme, què han après i quins dubtes queden. 
+            Inclou exactament dues cites textuals rellevants dins de <div class="ia-quote">"..."</div>.
+            Respon nomÉS amb HTML net, sense codi markdown ni explicacions extres. En català.
             DADES:\n${dadesText}`;
 
-            try {
-                const response = await fetch(URL_API, {
-                    method: 'POST',
-                    headers: { 'Content-Type': 'application/json' },
-                    body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
-                });
+            // LLISTA DE MODELS I RUTES PER SI UNA FALLA
+            const intents = [
+                { url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-1.5-flash-latest:generateContent?key=${apiKey}` },
+                { url: `https://generativelanguage.googleapis.com/v1/models/gemini-1.5-flash:generateContent?key=${apiKey}` },
+                { url: `https://generativelanguage.googleapis.com/v1beta/models/gemini-pro:generateContent?key=${apiKey}` }
+            ];
 
-                const data = await response.json();
+            let exit = false;
+            let darrerError = "";
 
-                if (!response.ok) {
-                    throw new Error(data.error?.message || `Error del servidor (${response.status})`);
+            for (const intent of intents) {
+                if (exit) break;
+                try {
+                    const response = await fetch(intent.url, {
+                        method: 'POST',
+                        headers: { 'Content-Type': 'application/json' },
+                        body: JSON.stringify({ contents: [{ parts: [{ text: prompt }] }] })
+                    });
+
+                    const data = await response.json();
+
+                    if (response.ok && data.candidates?.[0]?.content?.parts?.[0]?.text) {
+                        let textIA = data.candidates[0].content.parts[0].text;
+                        // Netegem possibles marcadors markdown que a vegades la IA posa per error
+                        textIA = textIA.replace(/```html|```/g, '').trim();
+                        
+                        content.innerHTML = `
+                            <div id="pdfArea" class="prose max-w-none">
+                                <div class="text-center mb-8 border-b pb-6">
+                                    <h2 class="text-2xl font-black mb-1">${nomEscola}</h2>
+                                    <p class="text-[10px] text-slate-400 font-bold uppercase tracking-widest">Resum del Mural • ${new Date().toLocaleDateString('ca-ES')}</p>
+                                </div>
+                                <div class="text-slate-600 leading-relaxed space-y-4 font-light">
+                                    ${textIA}
+                                </div>
+                            </div>
+                        `;
+                        btnPdf.classList.remove('hidden');
+                        exit = true;
+                    } else {
+                        darrerError = data.error?.message || "Error desconegut";
+                    }
+                } catch (e) {
+                    darrerError = e.message;
                 }
+            }
 
-                if (!data.candidates || !data.candidates[0]) {
-                    throw new Error("Resposta buida de la IA");
-                }
-
-                const textIA = data.candidates[0].content.parts[0].text;
+            if (!exit) {
                 content.innerHTML = `
-                    <div id="pdfArea" class="prose max-w-none">
-                        <div class="text-center mb-8 border-b pb-6">
-                            <h2 class="text-2xl font-black mb-1">${nomEscola}</h2>
-                            <p class="text-xs text-slate-400 font-bold uppercase tracking-widest">Síntesi del procés • ${new Date().toLocaleDateString('ca-ES')}</p>
+                    <div class="p-6 bg-red-50 text-red-700 rounded-2xl border border-red-100">
+                        <p class="font-bold mb-2">No s'ha pogut connectar amb la IA</p>
+                        <p class="text-sm opacity-80 mb-4">${darrerError}</p>
+                        <div class="text-xs bg-white/50 p-4 rounded-lg">
+                            <p class="font-bold uppercase mb-1">Passos per solucionar-ho:</p>
+                            <ol class="list-decimal ml-4 space-y-1">
+                                <li>Vés a <a href="https://aistudio.google.com/app/apikey" target="_blank" class="underline font-bold">Google AI Studio</a>.</li>
+                                <li>Crea una clau nova (botó blau "Create API key").</li>
+                                <li>Clica a "Configurar API" aquí dalt a la dreta i enganxa-la de nou.</li>
+                            </ol>
                         </div>
-                        <div class="text-slate-600 leading-relaxed space-y-4">
-                            ${textIA.replace(/```html|```/g, '')}
-                        </div>
-                    </div>
-                `;
-                btnPdf.classList.remove('hidden');
-
-            } catch (e) {
-                console.error(e);
-                content.innerHTML = `
-                    <div class="p-6 bg-red-50 text-red-700 rounded-2xl border border-red-100 text-sm">
-                        <p class="font-bold mb-2">Error de connexió</p>
-                        <p class="opacity-80">${e.message}</p>
-                        <hr class="my-3 border-red-200">
-                        <p class="text-[10px] leading-tight">Suggeriment: Revisa que la clau a 'Configurar API' sigui correcta i no tingui espais. Si és una clau nova de fa segons, espera 1 minut i torna-ho a provar.</p>
                     </div>
                 `;
             }
@@ -224,12 +250,14 @@
         function descarregarPDF() {
             const element = document.getElementById('pdfArea');
             const titol = element.querySelector('h2').innerText;
-            html2pdf().from(element).set({
-                margin: 15, filename: `Resum_${titol}.pdf`,
+            const opt = {
+                margin: 15,
+                filename: `Resum_${titol.replace(/\s+/g, '_')}.pdf`,
                 image: { type: 'jpeg', quality: 0.98 },
-                html2canvas: { scale: 2 },
+                html2canvas: { scale: 2, useCORS: true },
                 jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
-            }).save();
+            };
+            html2pdf().set(opt).from(element).save();
         }
 
         window.onload = carregarDades;
