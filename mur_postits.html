@@ -37,7 +37,7 @@
         }
         .summary-container {
             background: white;
-            max-width: 1000px;
+            max-width: 1100px;
             width: 100%;
             max-height: 90vh;
             overflow-y: auto;
@@ -52,29 +52,59 @@
         }
         @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
 
-        /* Estils per al PDF */
-        #pdf-template { display: none; width: 1120px; background: white; }
-        .pdf-page { padding: 30px 40px; min-height: 780px; box-sizing: border-box; background: white; }
-        .pdf-page.page-break { page-break-before: always; }
-        .pdf-header-main { border-bottom: 3px solid #0f172a; padding-bottom: 10px; margin-bottom: 20px; }
-        .pdf-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 12px; align-items: start; }
-        .pdf-note { page-break-inside: avoid; padding: 12px; border-radius: 12px; font-size: 10.5px; border: 1px solid rgba(0,0,0,0.08); box-shadow: 2px 2px 0px rgba(0,0,0,0.03); }
+        /* --- ESTILS ESPECÍFICS PER AL PDF --- */
+        #pdf-template { 
+            display: none; 
+            width: 800px; /* Ample fixat per al renderitzat del PDF A4 */
+            background: white; 
+        }
+        
+        .pdf-page { 
+            padding: 50px; 
+            box-sizing: border-box; 
+            background: white;
+        }
+
+        .pdf-header-main { 
+            border-bottom: 2px solid #e2e8f0; 
+            padding-bottom: 20px; 
+            margin-bottom: 30px; 
+        }
+
+        /* Targetes del resum al PDF */
+        .pdf-summary-card { 
+            margin-bottom: 20px;
+            padding: 30px; 
+            border-radius: 24px; 
+            border-bottom: 4px solid; 
+            border-right: 4px solid;
+            page-break-inside: avoid; /* EVITA QUE EL BLOC ES TALLI */
+            break-inside: avoid;
+        }
+
+        .pdf-footer {
+            margin-top: 30px;
+            text-align: center;
+            font-size: 10px;
+            color: #94a3b8;
+            font-weight: bold;
+            text-transform: uppercase;
+        }
     </style>
 </head>
 <body class="p-4 md:p-8 relative">
 
-    <!-- Comptador reubicat més amunt per no trepitjar el títol -->
+    <!-- Comptador global -->
     <div id="global-counter" class="fixed top-4 right-6 z-50 bg-white/90 backdrop-blur-md shadow-md px-4 py-2 rounded-full border border-slate-200 text-slate-900 font-black text-[10px] uppercase tracking-widest flex items-center gap-2">
         <span class="w-2 h-2 bg-indigo-500 rounded-full animate-pulse"></span>
         <span id="counter-text">Sincronitzant...</span>
     </div>
 
-    <canvas id="video-canvas" width="1280" height="720" class="hidden"></canvas>
-    
+    <!-- Overlay de generació de vídeo -->
     <div id="video-overlay" class="fixed inset-0 bg-slate-900/95 z-[200] hidden flex-col items-center justify-center text-center text-white">
         <div class="loader mb-8"></div>
         <h3 class="text-3xl font-black mb-2">Generant vídeo...</h3>
-        <p class="text-slate-400 mb-8">Composant diapositives amb música de piano suau</p>
+        <p class="text-slate-400 mb-8">Composant diapositives amb música suau</p>
         <div class="w-64 bg-slate-800 rounded-full h-2 mb-4 overflow-hidden">
             <div id="video-progress-bar" class="bg-indigo-500 h-full transition-all duration-300" style="width: 0%"></div>
         </div>
@@ -84,7 +114,7 @@
     <header class="max-w-5xl mx-auto mb-12 text-center pt-8">
         <div class="flex items-center justify-center gap-4 mb-2">
             <h1 class="text-3xl md:text-5xl font-black text-slate-900 tracking-tight">Mural d'idees: la veu de l'alumnat</h1>
-            <button onclick="fetchData()" class="p-2 hover:bg-slate-100 rounded-full transition-colors" title="Actualitzar dades">
+            <button onclick="fetchData()" class="p-2 hover:bg-slate-100 rounded-full transition-colors">
                 <svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" class="text-indigo-600"><path d="M3 12a9 9 0 0 1 9-9 9.75 9.75 0 0 1 6.74 2.74L21 8"></path><path d="M21 3v5h-5"></path><path d="M21 12a9 9 0 0 1-9 9 9.75 9.75 0 0 1-6.74-2.74L3 16"></path><path d="M3 21v-5h5"></path></svg>
             </button>
         </div>
@@ -99,34 +129,38 @@
 
     <main id="mural-grid" class="max-w-[1750px] mx-auto grid grid-cols-1 md:grid-cols-3 lg:grid-cols-5 gap-6 opacity-0 transition-opacity duration-700"></main>
 
+    <!-- Botons d'acció inferiors -->
     <div id="action-buttons" class="fixed bottom-8 left-1/2 -translate-x-1/2 z-50 hidden flex gap-4">
-        <button onclick="generatePDF()" class="bg-white text-slate-900 border border-slate-200 px-8 py-4 rounded-2xl text-sm font-black shadow-2xl flex items-center gap-3 hover:bg-slate-50 transition-all active:scale-95">
-            <span>📄</span> TOTES LES VEUS (PDF)
+        <button onclick="generateFullPDF()" class="bg-white text-slate-900 border border-slate-200 px-8 py-4 rounded-2xl text-sm font-black shadow-2xl flex items-center gap-3 hover:bg-slate-50 transition-all active:scale-95">
+            <span>📄</span> TOTS ELS POST-ITS
         </button>
         <button onclick="openSummary()" class="bg-indigo-600 text-white px-8 py-4 rounded-2xl text-sm font-black shadow-2xl flex items-center gap-3 hover:bg-indigo-700 transition-all active:scale-95">
-            <span>✨</span> FOTOGRAFIA RESUM
+            <span>✨</span> FOTOGRAFIA RESUM 
         </button>
     </div>
 
-    <!-- MODAL -->
+    <!-- MODAL RESUM -->
     <div id="summary-modal" onclick="if(event.target === this) closeModal()">
-        <div class="summary-container">
-            <div class="flex justify-between items-start mb-10">
+        <div class="summary-container" onclick="event.stopPropagation()">
+            <div class="flex flex-col md:flex-row justify-between items-start mb-10 gap-4">
                 <div>
                     <h2 id="modal-title" class="text-4xl font-black text-slate-900 mb-1"></h2>
-                    <p class="text-indigo-500 font-bold text-xs uppercase tracking-widest">Respostes destacades</p>
+                    <p class="text-indigo-500 font-bold text-xs uppercase tracking-widest">Selecció de frases destacades</p>
                 </div>
-                <div class="flex gap-2">
+                <div class="flex flex-wrap gap-2">
+                    <button onclick="generateSummaryPDF()" class="bg-slate-900 text-white px-6 py-3 rounded-2xl font-black text-xs shadow-lg transition-all hover:bg-slate-800 active:scale-95">📄 DESCARREGAR PDF</button>
                     <button onclick="generateVideo()" class="bg-rose-500 hover:bg-rose-600 text-white px-6 py-3 rounded-2xl font-black text-xs shadow-lg transition-all active:scale-95">🎬 GENERAR VÍDEO</button>
-                    <button onclick="closeModal()" class="bg-slate-100 p-2 rounded-full">✕</button>
+                    <button onclick="closeModal()" class="bg-slate-100 p-2 rounded-full ml-2">✕</button>
                 </div>
             </div>
             <div id="summary-content" class="grid grid-cols-1 md:grid-cols-2 gap-6"></div>
         </div>
     </div>
 
-    <!-- PDF TEMPLATE (HIDDEN) -->
-    <div id="pdf-template" class="child-voice"><div id="pdf-body"></div></div>
+    <!-- TEMPLATE PDF (OCULT) -->
+    <div id="pdf-template" class="child-voice">
+        <div id="pdf-body"></div>
+    </div>
 
     <script>
         const SCRIPT_URL = "https://script.google.com/macros/s/AKfycbyd8EMwdnW3MVat7v7zWbj5n0CHM5sl8Ket0HZcKdEVAqGysjMqH0POzgTA6NX2LHue3Q/exec";
@@ -228,9 +262,16 @@
                 if (texts.length > 0) {
                     const highlights = texts.sort((a, b) => b.length - a.length).slice(0, 4);
                     const card = document.createElement('div');
-                    card.className = "rounded-3xl p-8 border-b-4 border-r-4";
+                    card.className = "rounded-3xl p-8 border-b-4 border-r-4 shadow-sm";
                     card.style.backgroundColor = sec.color; card.style.borderColor = sec.border;
-                    card.innerHTML = `<div class="flex items-center gap-3 mb-6"><span class="text-2xl">${sec.icon}</span><span class="text-[11px] font-black uppercase tracking-widest text-slate-500">${sec.title}</span></div><div class="space-y-4">${highlights.map(t => `<p class="child-voice text-lg text-slate-800 leading-snug">"${t}"</p>`).join('')}</div>`;
+                    card.innerHTML = `
+                        <div class="flex items-center gap-3 mb-6">
+                            <span class="text-2xl">${sec.icon}</span>
+                            <span class="text-[11px] font-black uppercase tracking-widest text-slate-500">${sec.title}</span>
+                        </div>
+                        <div class="space-y-4">
+                            ${highlights.map(t => `<p class="child-voice text-lg text-slate-800 leading-snug">"${t}"</p>`).join('')}
+                        </div>`;
                     content.appendChild(card);
                 }
             });
@@ -239,7 +280,118 @@
 
         function closeModal() { document.getElementById('summary-modal').style.display = 'none'; }
 
-        // --- MOTOR DE VÍDEO I AUDIO ---
+        // --- PDF RESUM OPTIMITZAT PER NO TALLAR BLOCS (A4 VERTICAL) ---
+        async function generateSummaryPDF() {
+            const pdfBody = document.getElementById('pdf-body');
+            pdfBody.innerHTML = '';
+            
+            const schoolKey = getSchoolKey();
+            const schoolData = allData.filter(d => d[schoolKey] === currentSchool);
+            const keys = Object.keys(allData[0] || {});
+
+            const page = document.createElement('div');
+            page.className = "pdf-page";
+            
+            let html = `
+                <div class="pdf-header-main" style="display:flex; justify-content: space-between; align-items: center;">
+                    <div>
+                        <h1 style="font-size:32px; font-weight:900; color:#0f172a; margin:0; line-height:1;">${currentSchool}</h1>
+                        <p style="color:#6366f1; font-weight:800; font-size:12px; text-transform:uppercase; letter-spacing:0.1em; margin-top:8px;">Resum de la veu de l'alumnat</p>
+                    </div>
+                    <div style="text-align:right">
+                         <span style="font-size:24px;">✨</span>
+                    </div>
+                </div>
+                <div id="pdf-cards-container">`;
+
+            SECTIONS.forEach((sec, idx) => {
+                const colKey = keys[idx + 2];
+                const texts = schoolData.map(d => d[colKey]).filter(t => t && t.toString().trim().length > 10);
+                
+                if (texts.length > 0) {
+                    // Agafem fins a 4 frases destacades
+                    const highlights = texts.sort((a, b) => b.length - a.length).slice(0, 4);
+                    
+                    html += `
+                        <div class="pdf-summary-card" style="background-color: ${sec.color}; border-color: ${sec.border}">
+                            <div style="display:flex; align-items:center; gap:12px; margin-bottom:20px;">
+                                <span style="font-size:22px;">${sec.icon}</span>
+                                <span style="font-size:11px; font-weight:900; text-transform:uppercase; color: ${sec.textColor}; letter-spacing:0.1em;">${sec.title}</span>
+                            </div>
+                            <div style="display:flex; flex-direction:column; gap:15px;">
+                                ${highlights.map(t => `
+                                    <div style="display:flex; gap:10px;">
+                                        <span style="color:${sec.border}; font-size:20px; line-height:1;">"</span>
+                                        <p class="child-voice" style="font-size:16px; color:#1e293b; margin:0; line-height:1.4; flex:1;">${t}</p>
+                                    </div>
+                                `).join('')}
+                            </div>
+                        </div>`;
+                }
+            });
+
+            html += `</div><div class="pdf-footer">Mural d'idees · Generat el ${new Date().toLocaleDateString('ca-ES')}</div>`;
+            page.innerHTML = html;
+            pdfBody.appendChild(page);
+
+            const el = document.getElementById('pdf-template');
+            el.style.display = 'block';
+            
+            const opt = {
+                margin: 0,
+                filename: `Resum_${currentSchool.replace(/\s+/g, '_')}.pdf`,
+                image: { type: 'jpeg', quality: 0.98 },
+                html2canvas: { scale: 2, useCORS: true, letterRendering: true },
+                jsPDF: { unit: 'mm', format: 'a4', orientation: 'portrait' }
+            };
+
+            await html2pdf().set(opt).from(el).save();
+            el.style.display = 'none';
+        }
+
+        // PDF COMPLET DE TOTS ELS POST-ITS (MANTÉ FORMAT HORITZONTAL)
+        async function generateFullPDF() {
+            const schoolKey = getSchoolKey();
+            const schoolData = allData.filter(d => d[schoolKey] === currentSchool);
+            const keys = Object.keys(allData[0]);
+            const pdfBody = document.getElementById('pdf-body');
+            pdfBody.innerHTML = '';
+            let pages = 0;
+
+            SECTIONS.forEach((sec, idx) => {
+                const colKey = keys[idx + 2];
+                const res = schoolData.filter(d => d[colKey] && d[colKey].toString().trim().length > 1);
+                if (res.length > 0) {
+                    const div = document.createElement('div');
+                    div.className = `pdf-page ${pages++ > 0 ? 'page-break' : ''}`;
+                    div.style.width = "1100px"; // Ample especial per a horitzontal
+                    div.innerHTML = `
+                        <div class="pdf-header-main" style="border-bottom:3px solid #0f172a">
+                            <h1 style="font-size:28px;font-weight:900;">${sec.icon} ${sec.title}</h1>
+                            <p style="color:#64748b;font-weight:700;font-size:14px;">${currentSchool} · ${res.length} respostes</p>
+                        </div>
+                        <div style="display:grid; grid-template-columns: repeat(4, 1fr); gap:15px;">
+                            ${res.map(r => `
+                                <div style="background:${sec.color}; border-radius:12px; padding:15px; border:1px solid ${sec.border}; break-inside:avoid;">
+                                    <p class="child-voice" style="font-size:12px; margin:0;">${r[colKey]}</p>
+                                </div>`).join('')}
+                        </div>`;
+                    pdfBody.appendChild(div);
+                }
+            });
+
+            const el = document.getElementById('pdf-template'); 
+            el.style.display = 'block';
+            await html2pdf().set({ 
+                margin: 0, 
+                filename: `Mural_Complet_${currentSchool}.pdf`, 
+                jsPDF: { format: 'a4', orientation: 'landscape' },
+                html2canvas: { scale: 1.5 }
+            }).from(el).save();
+            el.style.display = 'none';
+        }
+
+        // GENERACIÓ DE VÍDEO AMB ÀUDIO
         function createPianoAudio(duration) {
             const ctx = new (window.AudioContext || window.webkitAudioContext)();
             const dest = ctx.createMediaStreamDestination();
@@ -250,12 +402,12 @@
                 osc.type = 'sine';
                 osc.frequency.setValueAtTime(freq, time);
                 g.gain.setValueAtTime(0, time);
-                g.gain.linearRampToValueAtTime(0.05, time + 0.1);
+                g.gain.linearRampToValueAtTime(0.04, time + 0.1);
                 g.gain.exponentialRampToValueAtTime(0.0001, time + 3);
                 osc.connect(g); g.connect(dest);
                 osc.start(time); osc.stop(time + 3);
             };
-            for(let t=0; t < duration; t += 2) {
+            for(let t=0; t < duration; t += 2.5) {
                 const note = notes[Math.floor(Math.random() * notes.length)];
                 playPianoNote(note, ctx.currentTime + t);
             }
@@ -263,7 +415,8 @@
         }
 
         async function generateVideo() {
-            const canvas = document.getElementById('video-canvas');
+            const canvas = document.createElement('canvas');
+            canvas.width = 1280; canvas.height = 720;
             const ctx = canvas.getContext('2d');
             const overlay = document.getElementById('video-overlay');
             const progressText = document.getElementById('video-progress-text');
@@ -287,74 +440,49 @@
             });
 
             const FPS = 30;
-            const SECONDS_PER_SLIDE = 8;
-            const totalDuration = slides.length * SECONDS_PER_SLIDE;
+            const SEC_PER_SLIDE = 6;
+            const totalDuration = slides.length * SEC_PER_SLIDE;
             
-            const videoStream = canvas.captureStream(FPS);
-            videoStream.addTrack(createPianoAudio(totalDuration + 2));
-            const recorder = new MediaRecorder(videoStream, { mimeType: 'video/webm;codecs=vp9', videoBitsPerSecond: 5000000 });
+            const stream = canvas.captureStream(FPS);
+            stream.addTrack(createPianoAudio(totalDuration + 2));
+            const recorder = new MediaRecorder(stream, { mimeType: 'video/webm;codecs=vp9' });
             const chunks = []; recorder.ondataavailable = e => chunks.push(e.data);
             recorder.onstop = () => {
                 const blob = new Blob(chunks, { type: 'video/mp4' });
                 const a = document.createElement('a');
-                a.href = URL.createObjectURL(blob); a.download = `Respostes_${currentSchool}.mp4`; a.click();
+                a.href = URL.createObjectURL(blob); a.download = `Video_Resum_${currentSchool}.mp4`; a.click();
                 overlay.style.display = 'none';
             };
             recorder.start();
 
             for (let i = 0; i < slides.length; i++) {
                 const { section, quotes } = slides[i];
-                for (let frame = 0; frame < FPS * SECONDS_PER_SLIDE; frame++) {
-                    ctx.fillStyle = 'white'; ctx.fillRect(0,0,1280,720);
+                for (let frame = 0; frame < FPS * SEC_PER_SLIDE; frame++) {
                     ctx.fillStyle = section.color; ctx.fillRect(0,0,1280,720);
                     ctx.textAlign = 'center'; ctx.fillStyle = section.textColor;
                     ctx.font = '60px Arial'; ctx.fillText(section.icon, 640, 150);
-                    ctx.font = '800 30px Plus Jakarta Sans'; ctx.fillText(section.title.toUpperCase(), 640, 210);
+                    ctx.font = '800 32px Plus Jakarta Sans'; ctx.fillText(section.title.toUpperCase(), 640, 210);
                     
-                    ctx.font = '36px Itim'; ctx.fillStyle = '#1e293b';
-                    let currentY = 350;
+                    ctx.font = '42px Itim'; ctx.fillStyle = '#1e293b';
+                    let currentY = 380;
                     quotes.forEach((q) => {
                         const words = `"${q}"`.split(' ');
                         let line = '';
                         words.forEach(w => {
                             if (ctx.measureText(line + w).width > 1000) { 
-                                ctx.fillText(line, 640, currentY); line = w + ' '; currentY += 50; 
+                                ctx.fillText(line, 640, currentY); line = w + ' '; currentY += 60; 
                             } else { line += w + ' '; }
                         });
-                        ctx.fillText(line, 640, currentY); currentY += 130;
+                        ctx.fillText(line, 640, currentY); currentY += 140;
                     });
 
-                    const globalProg = Math.round(((i * FPS * SECONDS_PER_SLIDE + frame) / (slides.length * FPS * SECONDS_PER_SLIDE)) * 100);
+                    const globalProg = Math.round(((i * FPS * SEC_PER_SLIDE + frame) / (slides.length * FPS * SEC_PER_SLIDE)) * 100);
                     progressText.innerText = globalProg + "%";
                     progressBar.style.width = globalProg + "%";
                     await new Promise(r => requestAnimationFrame(r));
                 }
             }
             recorder.stop();
-        }
-
-        async function generatePDF() {
-            const schoolKey = getSchoolKey();
-            const schoolData = allData.filter(d => d[schoolKey] === currentSchool);
-            const keys = Object.keys(allData[0]);
-            const pdfBody = document.getElementById('pdf-body');
-            pdfBody.innerHTML = '';
-            let pages = 0;
-
-            SECTIONS.forEach((sec, idx) => {
-                const colKey = keys[idx + 2];
-                const res = schoolData.filter(d => d[colKey] && d[colKey].toString().trim().length > 1);
-                if (res.length > 0) {
-                    const div = document.createElement('div');
-                    div.className = `pdf-page ${pages++ > 0 ? 'page-break' : ''}`;
-                    div.innerHTML = `<div class="pdf-header-main"><h1 style="font-size:24px;font-weight:800;">${sec.icon} ${sec.title}</h1><p style="color:#64748b;font-weight:700;">${currentSchool} · ${res.length} respostes</p></div><div class="pdf-grid">${res.map(r => `<div class="pdf-note" style="background:${sec.color};border-color:${sec.border}"><p>${r[colKey]}</p></div>`).join('')}</div>`;
-                    pdfBody.appendChild(div);
-                }
-            });
-
-            const el = document.getElementById('pdf-template'); el.style.display = 'block';
-            await html2pdf().set({ margin:0, filename:`Respostes_${currentSchool}.pdf`, jsPDF:{format:'a4', orientation:'landscape'} }).from(el).save();
-            el.style.display = 'none';
         }
 
         window.onload = fetchData;
